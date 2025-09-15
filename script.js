@@ -1,0 +1,1243 @@
+// Global State Management
+let currentTab = 'expense';
+let isAutoPlay = true; // Default to auto-play
+let isPaused = false;
+let autoPlayInterval = null;
+let messageQueue = [];
+let currentStep = 0;
+
+// Chat Messages for Each Use Case
+const chatFlows = {
+    expense: [
+        { type: 'bot', message: 'Welcome to ExpenseClaim! I can help you submit expense reports instantly.' },
+        { type: 'bot', message: 'Please upload your receipt to get started.' },
+        { type: 'user', message: 'Here is my business lunch receipt from The Blue Orchid.', file: 'receipt.jpg', showPreview: 'receipt' },
+        { type: 'bot', message: 'Processing your receipt...', processing: true },
+        { type: 'bot', message: 'Great! I found the following information:\n• Vendor: The Blue Orchid\n• Total Amount: $197.10\n• Date: January 15, 2025\n• Payment: Corporate Card ****4589' },
+        { type: 'bot', message: 'I\'ve populated the expense form. Please review and submit when ready.' },
+        { type: 'system', action: 'fillExpenseForm' },
+        { type: 'user', message: 'Perfect! The details are accurate. Submitting now.' },
+        { type: 'system', action: 'submitExpenseForm' },
+        { type: 'bot', message: '✓ Expense report submitted successfully! Reference #EXP-2025-0115' }
+    ],
+    leave: [
+        { type: 'bot', message: 'Welcome to ApplyLeave! I\'ll help you apply for leave based on your travel documents.' },
+        { type: 'bot', message: 'Please upload your flight ticket or boarding pass.' },
+        { type: 'user', message: 'Here\'s my flight ticket to New York.', file: 'boarding_pass.pdf', showPreview: 'ticket' },
+        { type: 'bot', message: 'Analyzing your travel document...', processing: true },
+        { type: 'bot', message: 'Perfect! I detected:\n• Departure: February 20, 2025\n• Return: February 24, 2025\n• Destination: New York' },
+        { type: 'bot', message: 'Your leave application has been prepared. Review the details on the right.' },
+        { type: 'system', action: 'fillLeaveForm' },
+        { type: 'user', message: 'Everything looks correct. Please submit.' },
+        { type: 'system', action: 'submitLeaveForm' },
+        { type: 'bot', message: '✓ Leave request submitted! Your manager will be notified. Reference #LV-2025-0220' }
+    ],
+    talent: [
+        { type: 'bot', message: 'Welcome to TalentMatch! I\'ll analyze resumes and match them with open positions.' },
+        { type: 'bot', message: 'Please upload a candidate\'s resume for analysis.' },
+        { type: 'user', message: 'I\'m uploading John Doe\'s resume for the senior developer position.', file: 'resume_john_doe.pdf', showPreview: 'resume' },
+        { type: 'bot', message: 'Analyzing resume and extracting skills...', processing: true },
+        { type: 'bot', message: 'Excellent candidate! Key findings:\n• 7 years experience\n• Strong in Python, React, AWS\n• Leadership experience' },
+        { type: 'bot', message: 'Matching with open positions in your organization...' },
+        { type: 'system', action: 'fillTalentDashboard' },
+        { type: 'bot', message: 'Found 3 strong matches! Best fit: Senior Full Stack Developer (95% match)' },
+        { type: 'user', message: 'Excellent! Please schedule an interview with the hiring manager.' },
+        { type: 'system', action: 'scheduleTalentInterview' },
+        { type: 'bot', message: '✓ Interview scheduled for next Tuesday at 2 PM. Calendar invites sent to all parties.' }
+    ]
+};
+
+// Initialize on DOM Load
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('🚀 DOM Content Loaded - Starting initialization');
+    
+    initializeControls();
+    initializeTabs();
+    initializeUploadZone();
+    initializeChatInput();
+    updateSceneIndicator();
+    
+    // Keyboard shortcuts
+    document.addEventListener('keydown', handleKeyPress);
+    
+    console.log('✅ All components initialized');
+    console.log('🎮 Auto-play status:', isAutoPlay);
+    
+    // Start auto-play by default - automatically start with expense tab
+    if (isAutoPlay) {
+        console.log('🔥 Starting auto-play mode');
+        updatePlayPauseButton();
+        
+        // Auto-start with intro slide first
+        setTimeout(() => {
+            console.log('⏰ Auto-start timer triggered');
+            
+            // Start with intro slide for expense tab
+            switchTab('expense');
+        }, 500);
+    } else {
+        console.log('⏸️ Auto-play is disabled');
+    }
+});
+
+// Control Panel Management
+function initializeControls() {
+    const manualBtn = document.getElementById('manualBtn');
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    
+    manualBtn.addEventListener('click', () => setMode('manual'));
+    playPauseBtn.addEventListener('click', () => togglePlayPause());
+}
+
+// Mode Management
+function setMode(mode) {
+    const manualBtn = document.getElementById('manualBtn');
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    
+    if (mode === 'manual') {
+        isAutoPlay = false;
+        isPaused = false;
+        manualBtn.classList.add('active');
+        playPauseBtn.classList.remove('active');
+        playPauseBtn.innerHTML = '<i class="fas fa-play"></i> Play';
+        stopAutoPlay();
+        updateChatInputPlaceholder();
+    }
+}
+
+// Play/Pause Toggle
+function togglePlayPause() {
+    const manualBtn = document.getElementById('manualBtn');
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    
+    if (!isAutoPlay) {
+        // Switch to auto-play mode
+        isAutoPlay = true;
+        isPaused = false;
+        manualBtn.classList.remove('active');
+        playPauseBtn.classList.add('active');
+        document.getElementById('nextBtn').style.display = 'none';
+        updatePlayPauseButton();
+        
+        // Continue from current position
+        processNextStep();
+    } else {
+        // Toggle pause/play
+        isPaused = !isPaused;
+        updatePlayPauseButton();
+        
+        if (!isPaused) {
+            // Resume
+            processNextStep();
+        }
+    }
+}
+
+function updatePlayPauseButton() {
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    if (isAutoPlay) {
+        if (isPaused) {
+            playPauseBtn.innerHTML = '<i class="fas fa-play"></i> Play';
+            playPauseBtn.classList.remove('active');
+        } else {
+            playPauseBtn.innerHTML = '<i class="fas fa-pause"></i> Pause';
+            playPauseBtn.classList.add('active');
+        }
+    } else {
+        playPauseBtn.innerHTML = '<i class="fas fa-play"></i> Play';
+        playPauseBtn.classList.remove('active');
+    }
+}
+
+// Tab Navigation
+function initializeTabs() {
+    const tabs = document.querySelectorAll('.tab-btn');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            switchTab(tab.dataset.tab);
+        });
+    });
+}
+
+function switchTab(tabName) {
+    // Update active tab
+    currentTab = tabName;
+    currentStep = 0;
+    
+    // Show intro overlay first
+    showIntroSlide(tabName, () => {
+        // Hide all upload previews
+        document.getElementById('receiptPreview').style.display = 'none';
+        document.getElementById('ticketPreview').style.display = 'none';
+        document.getElementById('resumePreview').style.display = 'none';
+        
+        // Update tab buttons
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.tab === tabName);
+        });
+        
+        // Update system interfaces
+        document.querySelectorAll('.system-interface').forEach(interface => {
+            interface.classList.remove('active');
+        });
+        
+        // Show corresponding system
+        if (tabName === 'expense') {
+            document.getElementById('expense-system').classList.add('active');
+        } else if (tabName === 'leave') {
+            document.getElementById('leave-system').classList.add('active');
+        } else if (tabName === 'talent') {
+            document.getElementById('talent-system').classList.add('active');
+        }
+        
+        // Clear and restart chat
+        clearChat();
+        resetForms();
+        
+        // Hide all success screens
+        document.querySelectorAll('.success-screen').forEach(screen => {
+            screen.classList.remove('show');
+        });
+        
+        // Start the flow
+        if (isAutoPlay && !isPaused) {
+            setTimeout(() => processNextStep(), 500);
+        } else {
+            // Show first message
+            const flow = chatFlows[currentTab];
+            if (flow && flow[0]) {
+                addMessage(flow[0].type, flow[0].message);
+                currentStep = 1;
+                updateChatInputPlaceholder();
+            }
+        }
+        
+        updateSceneIndicator();
+    });
+}
+
+// Chat Management
+function clearChat() {
+    const chatMessages = document.getElementById('chatMessages');
+    chatMessages.innerHTML = '';
+}
+
+function addMessage(type, message, options = {}) {
+    const chatMessages = document.getElementById('chatMessages');
+    const messageDiv = document.createElement('div');
+    
+    if (type === 'bot') {
+        messageDiv.className = 'bot-message';
+        const messageContent = document.createElement('div');
+        messageContent.className = 'message-content';
+        
+        // Create message structure with placeholder for typewriter text
+        messageDiv.innerHTML = `
+            <div class="bot-avatar">
+                <i class="fas fa-robot"></i>
+            </div>
+        `;
+        messageDiv.appendChild(messageContent);
+        
+        // Add typewriter effect for bot messages in auto-play mode
+        if (isAutoPlay && !options.processing) {
+            const paragraph = document.createElement('p');
+            messageContent.appendChild(paragraph);
+            typewriterEffect(paragraph, message.replace(/\n/g, '<br>'), 30);
+        } else {
+            messageContent.innerHTML = `
+                <p>${message.replace(/\n/g, '<br>')}</p>
+                ${options.processing ? `
+                    <div class="processing-indicator">
+                        <i class="fas fa-spinner"></i>
+                        <span>Processing...</span>
+                    </div>
+                ` : ''}
+            `;
+        }
+    } else if (type === 'user') {
+        messageDiv.className = 'user-message';
+        messageDiv.innerHTML = `
+            <div class="user-avatar">
+                <i class="fas fa-user"></i>
+            </div>
+            <div class="message-content">
+                <p>${message}</p>
+                ${options.file ? `
+                    <div class="upload-notification">
+                        <i class="fas fa-file-upload"></i>
+                        <span>${options.file}</span>
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    }
+    
+    if (messageDiv.className) {
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    
+    // Show upload preview if specified
+    if (options.showPreview) {
+        showUploadPreview(options.showPreview);
+    }
+}
+
+// Typewriter effect function
+function typewriterEffect(element, text, speed) {
+    let i = 0;
+    const html = text;
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
+    const textContent = tempDiv.textContent || tempDiv.innerText || '';
+    
+    element.innerHTML = '';
+    
+    function type() {
+        if (i < textContent.length) {
+            if (textContent.charAt(i) === '\n' || (html.indexOf('<br>') !== -1 && i === html.indexOf('<br>'))) {
+                element.innerHTML += '<br>';
+            } else {
+                element.innerHTML += textContent.charAt(i);
+            }
+            i++;
+            
+            // Add cursor effect
+            element.innerHTML = element.innerHTML.replace(/<span class="typewriter-cursor"><\/span>/g, '') + '<span class="typewriter-cursor"></span>';
+            
+            setTimeout(type, speed);
+        } else {
+            // Remove cursor when done
+            element.innerHTML = element.innerHTML.replace(/<span class="typewriter-cursor"><\/span>/g, '');
+        }
+    }
+    
+    type();
+}
+
+// Show Upload Preview
+function showUploadPreview(type) {
+    // Hide all previews first
+    document.getElementById('receiptPreview').style.display = 'none';
+    document.getElementById('ticketPreview').style.display = 'none';
+    document.getElementById('resumePreview').style.display = 'none';
+    
+    // Show relevant preview
+    if (type === 'receipt') {
+        document.getElementById('receiptPreview').style.display = 'block';
+    } else if (type === 'ticket') {
+        document.getElementById('ticketPreview').style.display = 'block';
+    } else if (type === 'resume') {
+        document.getElementById('resumePreview').style.display = 'block';
+    }
+}
+
+// Initialize Chat Input
+function initializeChatInput() {
+    const chatInput = document.getElementById('chatInput');
+    const chatSendBtn = document.getElementById('chatSendBtn');
+    
+    chatSendBtn.addEventListener('click', handleChatSubmit);
+    
+    chatInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            handleChatSubmit();
+        }
+    });
+    
+    // Enable drag and drop on chat input
+    chatInput.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        chatInput.placeholder = 'Drop your file here...';
+    });
+    
+    chatInput.addEventListener('dragleave', () => {
+        updateChatInputPlaceholder();
+    });
+    
+    chatInput.addEventListener('drop', (e) => {
+        e.preventDefault();
+        handleFileUpload();
+    });
+}
+
+// Update chat input placeholder based on context
+function updateChatInputPlaceholder() {
+    const chatInput = document.getElementById('chatInput');
+    const flow = chatFlows[currentTab];
+    
+    if (!flow || currentStep >= flow.length) {
+        chatInput.placeholder = 'Type your message...';
+        return;
+    }
+    
+    const step = flow[currentStep];
+    
+    if (!isAutoPlay) {
+        // Manual mode - provide helpful placeholder text
+        if (step.type === 'user') {
+            if (step.file) {
+                chatInput.placeholder = `Upload ${step.file} or press Enter to continue...`;
+            } else {
+                chatInput.placeholder = `Type "${step.message}" or press Enter...`;
+            }
+        } else {
+            chatInput.placeholder = 'Press Enter to continue...';
+        }
+    } else {
+        chatInput.placeholder = 'Type your message or drag & drop files here...';
+    }
+}
+
+// Handle chat submission
+function handleChatSubmit() {
+    const chatInput = document.getElementById('chatInput');
+    const inputValue = chatInput.value.trim();
+    
+    if (!isAutoPlay) {
+        // Manual mode - proceed with predefined flow regardless of input
+        const flow = chatFlows[currentTab];
+        if (flow && currentStep < flow.length) {
+            const step = flow[currentStep];
+            
+            // If it's a user step, show the predefined message
+            if (step.type === 'user') {
+                // Clear input
+                chatInput.value = '';
+                // Process the predefined step
+                processNextStep();
+            } else {
+                // For non-user steps, just continue
+                processNextStep();
+            }
+        }
+    } else if (inputValue) {
+        // Auto mode - show user's actual message
+        addMessage('user', inputValue);
+        chatInput.value = '';
+        
+        // Simulate bot response
+        setTimeout(() => {
+            const typingIndicator = showTypingIndicator();
+            setTimeout(() => {
+                removeTypingIndicator(typingIndicator);
+                addMessage('bot', 'Processing your request...');
+            }, 1000);
+        }, 500);
+    }
+    
+    updateChatInputPlaceholder();
+}
+
+// Handle file upload simulation
+function handleFileUpload() {
+    if (!isAutoPlay) {
+        // In manual mode, proceed with the predefined flow
+        const flow = chatFlows[currentTab];
+        if (flow && currentStep < flow.length) {
+            const step = flow[currentStep];
+            if (step.type === 'user' && step.file) {
+                processNextStep();
+            }
+        }
+    }
+}
+
+// Add typing indicator
+function showTypingIndicator() {
+    const chatMessages = document.getElementById('chatMessages');
+    const typingDiv = document.createElement('div');
+    typingDiv.className = 'bot-message typing-message';
+    typingDiv.innerHTML = `
+        <div class="bot-avatar">
+            <i class="fas fa-robot"></i>
+        </div>
+        <div class="message-content">
+            <div class="typing-indicator">
+                <span class="typing-dot"></span>
+                <span class="typing-dot"></span>
+                <span class="typing-dot"></span>
+            </div>
+        </div>
+    `;
+    chatMessages.appendChild(typingDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    return typingDiv;
+}
+
+function removeTypingIndicator(element) {
+    if (element && element.parentNode) {
+        element.parentNode.removeChild(element);
+    }
+}
+
+// Form Management
+function resetForms() {
+    // Reset expense form
+    document.getElementById('expense-vendor').value = '';
+    document.getElementById('expense-amount').value = '';
+    document.getElementById('expense-date').value = '';
+    document.getElementById('expense-category').selectedIndex = 0;
+    document.getElementById('expense-description').value = '';
+    document.querySelector('#expense-form .submit-btn').disabled = true;
+    
+    // Reset leave form
+    document.getElementById('leave-from').value = '';
+    document.getElementById('leave-to').value = '';
+    document.getElementById('leave-type').selectedIndex = 0;
+    document.getElementById('leave-destination').value = '';
+    document.getElementById('leave-reason').value = '';
+    document.querySelector('#leave-form .submit-btn').disabled = true;
+    document.getElementById('leave-calendar').classList.remove('active');
+    
+    // Reset talent dashboard
+    document.getElementById('candidate-info').innerHTML = `
+        <h3><i class="fas fa-id-card"></i> Candidate Profile</h3>
+        <div class="info-placeholder">
+            <i class="fas fa-user-circle"></i>
+            <p>Upload resume to view candidate details</p>
+        </div>
+    `;
+    document.getElementById('job-matches').innerHTML = `
+        <h3><i class="fas fa-briefcase"></i> Job Matches</h3>
+        <div class="matches-placeholder">
+            <i class="fas fa-search"></i>
+            <p>Matching positions will appear here</p>
+        </div>
+    `;
+    
+    // Remove filled classes
+    document.querySelectorAll('.filled').forEach(el => el.classList.remove('filled'));
+    
+    // Reset status messages
+    document.getElementById('expense-status').innerHTML = `
+        <i class="fas fa-info-circle"></i>
+        <span>Form will be populated after document upload</span>
+    `;
+    document.getElementById('leave-status').innerHTML = `
+        <i class="fas fa-info-circle"></i>
+        <span>Upload your travel document to auto-fill this form</span>
+    `;
+}
+
+// Form Filling Animations
+function fillExpenseForm() {
+    const fields = [
+        { id: 'expense-vendor', value: 'The Blue Orchid', delay: 200 },
+        { id: 'expense-amount', value: '$197.10', delay: 400 },
+        { id: 'expense-date', value: 'January 15, 2025', delay: 600 },
+        { id: 'expense-category', value: 'Business Meals', delay: 800, isSelect: true },
+        { id: 'expense-description', value: 'Business lunch with client team - Q1 planning discussion', delay: 1000 }
+    ];
+    
+    fields.forEach(field => {
+        setTimeout(() => {
+            const element = document.getElementById(field.id);
+            const formGroup = element.closest('.form-group');
+            
+            // Auto-scroll to the field being filled
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            
+            // Add glowing effect to form group
+            if (formGroup) {
+                formGroup.classList.add('filling');
+                setTimeout(() => formGroup.classList.remove('filling'), 1000);
+            }
+            
+            if (field.isSelect) {
+                element.innerHTML = `
+                    <option>Business Meals</option>
+                    <option>Travel</option>
+                    <option>Supplies</option>
+                `;
+                element.selectedIndex = 0;
+                element.disabled = false;
+            } else {
+                element.value = field.value;
+                element.readOnly = false;
+            }
+            element.classList.add('filled');
+        }, field.delay);
+    });
+    
+    setTimeout(() => {
+        document.querySelector('#expense-form .submit-btn').disabled = false;
+        document.getElementById('expense-status').classList.add('success');
+        document.getElementById('expense-status').innerHTML = `
+            <i class="fas fa-check-circle"></i>
+            <span>Form populated successfully! Ready to submit.</span>
+        `;
+    }, 1200);
+}
+
+function fillLeaveForm() {
+    const fields = [
+        { id: 'leave-from', value: 'February 20, 2025', delay: 200 },
+        { id: 'leave-to', value: 'February 24, 2025', delay: 400 },
+        { id: 'leave-type', value: 'Annual Leave', delay: 600, isSelect: true },
+        { id: 'leave-destination', value: 'New York, NY', delay: 800 },
+        { id: 'leave-reason', value: 'Personal travel - Family visit', delay: 1000 }
+    ];
+    
+    fields.forEach(field => {
+        setTimeout(() => {
+            const element = document.getElementById(field.id);
+            if (field.isSelect) {
+                element.innerHTML = `
+                    <option>Annual Leave</option>
+                    <option>Sick Leave</option>
+                    <option>Personal Leave</option>
+                `;
+                element.selectedIndex = 0;
+                element.disabled = false;
+            } else {
+                element.value = field.value;
+                element.readOnly = false;
+            }
+            element.classList.add('filled');
+        }, field.delay);
+    });
+    
+    setTimeout(() => {
+        // Show calendar
+        const calendar = document.getElementById('leave-calendar');
+        calendar.classList.add('active');
+        calendar.querySelector('.calendar-preview').innerHTML = generateCalendar();
+        
+        document.querySelector('#leave-form .submit-btn').disabled = false;
+        document.getElementById('leave-status').classList.add('success');
+        document.getElementById('leave-status').innerHTML = `
+            <i class="fas fa-check-circle"></i>
+            <span>Leave dates extracted and form populated!</span>
+        `;
+    }, 1200);
+}
+
+function fillTalentDashboard() {
+    // Fill candidate info
+    setTimeout(() => {
+        document.getElementById('candidate-info').innerHTML = `
+            <h3><i class="fas fa-id-card"></i> Candidate Profile</h3>
+            <div class="candidate-details">
+                <div class="detail-item">
+                    <strong>Name:</strong>
+                    <span>John Doe</span>
+                </div>
+                <div class="detail-item">
+                    <strong>Experience:</strong>
+                    <span>7 years</span>
+                </div>
+                <div class="detail-item">
+                    <strong>Current Role:</strong>
+                    <span>Senior Developer</span>
+                </div>
+                <div class="detail-item">
+                    <strong>Education:</strong>
+                    <span>B.S. Computer Science</span>
+                </div>
+            </div>
+        `;
+    }, 500);
+    
+    // Fill job matches
+    setTimeout(() => {
+        document.getElementById('job-matches').innerHTML = `
+            <h3><i class="fas fa-briefcase"></i> Job Matches</h3>
+            <div class="job-match-card">
+                <div class="job-info">
+                    <h4>Senior Full Stack Developer</h4>
+                    <p>Engineering Team</p>
+                </div>
+                <div class="match-score high">95%</div>
+            </div>
+            <div class="job-match-card">
+                <div class="job-info">
+                    <h4>Cloud Solutions Architect</h4>
+                    <p>Infrastructure Team</p>
+                </div>
+                <div class="match-score medium">82%</div>
+            </div>
+            <div class="job-match-card">
+                <div class="job-info">
+                    <h4>Engineering Manager</h4>
+                    <p>Product Team</p>
+                </div>
+                <div class="match-score medium">78%</div>
+            </div>
+        `;
+    }, 1000);
+    
+    // Fill skills analysis
+    setTimeout(() => {
+        document.getElementById('skills-analysis').innerHTML = `
+            <h3><i class="fas fa-chart-radar"></i> Skills Analysis</h3>
+            <div class="skills-chart">
+                <div class="skill-item">
+                    <span class="skill-name">Python</span>
+                    <div class="skill-bar">
+                        <div class="skill-fill" style="width: 95%">
+                            <span>95%</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="skill-item">
+                    <span class="skill-name">React</span>
+                    <div class="skill-bar">
+                        <div class="skill-fill" style="width: 90%">
+                            <span>90%</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="skill-item">
+                    <span class="skill-name">AWS</span>
+                    <div class="skill-bar">
+                        <div class="skill-fill" style="width: 85%">
+                            <span>85%</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="skill-item">
+                    <span class="skill-name">Docker</span>
+                    <div class="skill-bar">
+                        <div class="skill-fill" style="width: 80%">
+                            <span>80%</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="skill-item">
+                    <span class="skill-name">Leadership</span>
+                    <div class="skill-bar">
+                        <div class="skill-fill" style="width: 75%">
+                            <span>75%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }, 1500);
+}
+
+// Generate Calendar
+function generateCalendar() {
+    const days = [];
+    for (let i = 19; i <= 25; i++) {
+        const isSelected = i >= 20 && i <= 24;
+        const isWeekend = i === 22 || i === 23;
+        days.push(`<div class="calendar-day ${isSelected ? 'selected' : ''} ${isWeekend ? 'weekend' : ''}">${i}</div>`);
+    }
+    return days.join('');
+}
+
+// Submit Form Animations
+function submitExpenseForm() {
+    const btn = document.querySelector('#expense-form .submit-btn');
+    
+    // Show animated cursor moving to button
+    showAnimatedCursor(btn, () => {
+        btn.classList.add('processing');
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+        
+        setTimeout(() => {
+            btn.classList.remove('processing');
+            btn.classList.add('completed');
+            btn.innerHTML = '<i class="fas fa-check"></i> Submitted Successfully';
+            
+            // Show success screen after a short delay
+            setTimeout(() => {
+                showSuccessScreen('expense');
+            }, 500);
+        }, 1500);
+    });
+}
+
+// Animated cursor function
+function showAnimatedCursor(targetElement, callback) {
+    // Create cursor element if it doesn't exist
+    let cursor = document.getElementById('animatedCursor');
+    if (!cursor) {
+        cursor = document.createElement('div');
+        cursor.id = 'animatedCursor';
+        cursor.className = 'animated-cursor';
+        document.body.appendChild(cursor);
+    }
+    
+    // Get target position
+    const rect = targetElement.getBoundingClientRect();
+    const targetX = rect.left + rect.width / 2;
+    const targetY = rect.top + rect.height / 2;
+    
+    // Start from current position or center
+    cursor.style.left = (window.innerWidth / 2) + 'px';
+    cursor.style.top = (window.innerHeight / 2) + 'px';
+    cursor.classList.add('show');
+    
+    // Animate to target
+    setTimeout(() => {
+        cursor.style.transition = 'all 1s ease';
+        cursor.style.left = targetX + 'px';
+        cursor.style.top = targetY + 'px';
+    }, 100);
+    
+    // Click animation and callback
+    setTimeout(() => {
+        cursor.classList.add('clicking');
+        if (callback) callback();
+        
+        setTimeout(() => {
+            cursor.classList.remove('show', 'clicking');
+        }, 500);
+    }, 1200);
+}
+
+function submitLeaveForm() {
+    const btn = document.querySelector('#leave-form .submit-btn');
+    
+    // Show animated cursor moving to button
+    showAnimatedCursor(btn, () => {
+        btn.classList.add('processing');
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+        
+        setTimeout(() => {
+            btn.classList.remove('processing');
+            btn.classList.add('completed');
+            btn.innerHTML = '<i class="fas fa-check"></i> Leave Request Submitted';
+            
+            // Show success screen after a short delay
+            setTimeout(() => {
+                showSuccessScreen('leave');
+            }, 500);
+        }, 1500);
+    });
+}
+
+// Show Success Screen
+function showSuccessScreen(type) {
+    let successId = '';
+    
+    if (type === 'expense') {
+        successId = 'expense-success';
+    } else if (type === 'leave') {
+        successId = 'leave-success';
+    } else if (type === 'talent') {
+        successId = 'talent-success';
+    }
+    
+    const successScreen = document.getElementById(successId);
+    if (successScreen) {
+        successScreen.classList.add('show');
+        
+        // Continue flow after showing success screen - but keep success screen visible
+        if (isAutoPlay) {
+            setTimeout(() => {
+                currentStep++;
+                processNextStep();
+            }, 1500);
+        }
+    }
+}
+
+// Process Next Step
+function processNextStep() {
+    console.log('🎯 processNextStep called - isPaused:', isPaused, 'currentTab:', currentTab, 'currentStep:', currentStep);
+    
+    if (isPaused) {
+        console.log('⏸️ Process paused - returning early');
+        return;
+    }
+    
+    const flow = chatFlows[currentTab];
+    console.log('📊 Flow for', currentTab, ':', flow ? `${flow.length} steps` : 'not found');
+    
+    if (!flow || currentStep >= flow.length) {
+        console.log('🔚 Flow completed or not found');
+        if (isAutoPlay) {
+            // Move to next tab
+            const tabs = ['expense', 'leave', 'talent'];
+            const currentIndex = tabs.indexOf(currentTab);
+            if (currentIndex < tabs.length - 1) {
+                console.log('➡️ Moving to next tab:', tabs[currentIndex + 1]);
+                setTimeout(() => {
+                    if (!isPaused) {
+                        switchTab(tabs[currentIndex + 1]);
+                    }
+                }, 2000);
+            } else {
+                // Show ROI dashboard
+                console.log('📈 Showing ROI dashboard');
+                setTimeout(() => {
+                    if (!isPaused) {
+                        showROIDashboard();
+                    }
+                }, 2000);
+            }
+        }
+        return;
+    }
+    
+    const step = flow[currentStep];
+    console.log('📝 Processing step', currentStep, ':', step);
+    
+    if (step.type === 'system') {
+        console.log('⚙️ System action:', step.action);
+        // Execute system action
+        if (step.action === 'fillExpenseForm') {
+            fillExpenseForm();
+        } else if (step.action === 'fillLeaveForm') {
+            fillLeaveForm();
+        } else if (step.action === 'fillTalentDashboard') {
+            fillTalentDashboard();
+        } else if (step.action === 'submitExpenseForm') {
+            submitExpenseForm();
+            // Success screen will handle continuation
+            return;
+        } else if (step.action === 'submitLeaveForm') {
+            submitLeaveForm();
+            // Success screen will handle continuation
+            return;
+        } else if (step.action === 'scheduleTalentInterview') {
+            scheduleTalentInterview();
+            // Success screen will handle continuation
+            return;
+        }
+        
+        currentStep++;
+        console.log('⏭️ System step completed, currentStep now:', currentStep);
+        if (isAutoPlay && !isPaused) {
+            setTimeout(() => processNextStep(), 2000);
+        }
+    } else {
+        console.log('💬 Message step - type:', step.type, 'message:', step.message.substring(0, 50) + '...');
+        // Show typing indicator for bot messages
+        let typingIndicator = null;
+        if (step.type === 'bot' && !step.processing) {
+            console.log('⌨️ Showing typing indicator');
+            typingIndicator = showTypingIndicator();
+        }
+        
+        setTimeout(() => {
+            if (typingIndicator) {
+                removeTypingIndicator(typingIndicator);
+                console.log('🗑️ Removed typing indicator');
+            }
+            
+            console.log('📤 Adding message to chat');
+            
+            // For user messages, show typing in input first
+            if (step.type === 'user') {
+                typeInChatInput(step.message, () => {
+                    addMessage(step.type, step.message, {
+                        processing: step.processing,
+                        file: step.file,
+                        showPreview: step.showPreview
+                    });
+                    
+                    currentStep++;
+                    console.log('⏭️ Message step completed, currentStep now:', currentStep);
+                    
+                    if (isAutoPlay && !isPaused) {
+                        const delay = step.processing ? 3000 : 2000;
+                        console.log('⏰ Scheduling next step in', delay, 'ms');
+                        setTimeout(() => processNextStep(), delay);
+                    }
+                });
+            } else {
+                addMessage(step.type, step.message, {
+                    processing: step.processing,
+                    file: step.file,
+                    showPreview: step.showPreview
+                });
+                
+                currentStep++;
+                console.log('⏭️ Message step completed, currentStep now:', currentStep);
+                
+                if (isAutoPlay && !isPaused) {
+                    const delay = step.processing ? 3000 : 2000;
+                    console.log('⏰ Scheduling next step in', delay, 'ms');
+                    setTimeout(() => processNextStep(), delay);
+                }
+            }
+        }, step.type === 'bot' ? 800 : 100);
+    }
+    
+    // Update placeholder for manual mode
+    if (!isAutoPlay) {
+        updateChatInputPlaceholder();
+    }
+}
+
+// Show ROI Dashboard
+function showROIDashboard() {
+    // Hide all tabs
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Hide all systems
+    document.querySelectorAll('.system-interface').forEach(interface => {
+        interface.classList.remove('active');
+    });
+    
+    // Hide upload previews
+    document.getElementById('receiptPreview').style.display = 'none';
+    document.getElementById('ticketPreview').style.display = 'none';
+    document.getElementById('resumePreview').style.display = 'none';
+    
+    // Show ROI dashboard
+    document.getElementById('roi-dashboard').classList.add('active');
+    
+    // Clear chat
+    clearChat();
+    addMessage('bot', 'Here\'s the impact Smartgent can have on your enterprise operations!');
+    
+    // Animate metrics
+    animateMetrics();
+    
+    // Update indicator
+    updateSceneIndicator();
+    
+    // Restart after delay if auto-play
+    if (isAutoPlay && !isPaused) {
+        setTimeout(() => {
+            if (!isPaused) {
+                switchTab('expense');
+            }
+        }, 8000);
+    }
+}
+
+// Animate Metrics
+function animateMetrics() {
+    document.querySelectorAll('.metric-value').forEach(metric => {
+        const target = parseFloat(metric.getAttribute('data-target'));
+        const isPercentage = metric.textContent.includes('%');
+        const isMultiplier = metric.textContent.includes('x');
+        const isMoney = metric.textContent.includes('$');
+        
+        let current = 0;
+        const increment = target / 50;
+        const timer = setInterval(() => {
+            current += increment;
+            if (current >= target) {
+                current = target;
+                clearInterval(timer);
+            }
+            
+            if (isPercentage) {
+                metric.textContent = `${current.toFixed(1)}%`;
+            } else if (isMultiplier) {
+                metric.textContent = `${current.toFixed(0)}x`;
+            } else if (isMoney) {
+                metric.textContent = `$${current.toFixed(1)}M`;
+            } else {
+                metric.textContent = current.toFixed(0);
+            }
+        }, 30);
+    });
+}
+
+// Upload Zone
+function initializeUploadZone() {
+    const uploadZone = document.getElementById('uploadZone');
+    const fileInput = document.getElementById('fileInput');
+    const nextBtn = document.getElementById('nextBtn');
+    
+    console.log('📁 Upload zone elements:', { uploadZone: !!uploadZone, fileInput: !!fileInput, nextBtn: !!nextBtn });
+    
+    if (uploadZone) {
+        uploadZone.addEventListener('click', () => {
+            if (!isAutoPlay) {
+                fileInput.click();
+            }
+        });
+        
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('active');
+        });
+        
+        uploadZone.addEventListener('dragleave', () => {
+            uploadZone.classList.remove('active');
+        });
+        
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('active');
+            // Simulate file upload
+            if (!isAutoPlay) {
+                processNextStep();
+            }
+        });
+    }
+    
+    if (fileInput) {
+        fileInput.addEventListener('change', () => {
+            if (!isAutoPlay) {
+                processNextStep();
+            }
+        });
+    }
+    
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+            if (!isAutoPlay) {
+                processNextStep();
+            }
+        });
+    }
+}
+
+// Stop Auto-play
+function stopAutoPlay() {
+    if (autoPlayInterval) {
+        clearInterval(autoPlayInterval);
+        autoPlayInterval = null;
+    }
+}
+
+// Update Scene Indicator
+function updateSceneIndicator() {
+    const progressFill = document.getElementById('progressFill');
+    
+    const tabs = ['expense', 'leave', 'talent'];
+    const currentIndex = tabs.indexOf(currentTab);
+    const totalSteps = tabs.length + 1; // Including ROI dashboard
+    
+    if (document.getElementById('roi-dashboard').classList.contains('active')) {
+        progressFill.style.width = '100%';
+    } else if (currentIndex >= 0) {
+        progressFill.style.width = `${((currentIndex + 1) / totalSteps) * 100}%`;
+    } else {
+        progressFill.style.width = '0%';
+    }
+}
+
+// Keyboard Controls
+function handleKeyPress(e) {
+    switch(e.key) {
+        case ' ':
+            e.preventDefault();
+            togglePlayPause();
+            break;
+        case 'f':
+        case 'F':
+            toggleFullscreen();
+            break;
+        case 'Escape':
+            if (document.fullscreenElement) {
+                exitFullscreen();
+            }
+            break;
+        case 'Enter':
+            if (!isAutoPlay) {
+                processNextStep();
+            }
+            break;
+    }
+}
+
+// Fullscreen functionality
+function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+        document.body.classList.add('fullscreen');
+    } else {
+        document.exitFullscreen();
+        document.body.classList.remove('fullscreen');
+    }
+}
+
+function exitFullscreen() {
+    if (document.exitFullscreen) {
+        document.exitFullscreen();
+    }
+    document.body.classList.remove('fullscreen');
+}
+
+// Show Intro Slide
+function showIntroSlide(tabName, callback) {
+    const introOverlay = document.getElementById('introOverlay');
+    const introIcon = document.getElementById('introIcon');
+    const introTitle = document.getElementById('introTitle');
+    
+    // Set icon and title based on tab
+    let iconClass = '';
+    let title = '';
+    let overlayClass = '';
+    
+    switch(tabName) {
+        case 'expense':
+            iconClass = 'fas fa-receipt';
+            title = 'ExpenseClaim';
+            overlayClass = 'expense';
+            break;
+        case 'leave':
+            iconClass = 'fas fa-plane-departure';
+            title = 'ApplyLeave';
+            overlayClass = 'leave';
+            break;
+        case 'talent':
+            iconClass = 'fas fa-users';
+            title = 'TalentMatch';
+            overlayClass = 'talent';
+            break;
+    }
+    
+    // Update overlay content
+    introIcon.className = `intro-icon ${iconClass}`;
+    introTitle.textContent = title;
+    
+    // Reset overlay classes and add the specific theme
+    introOverlay.className = `intro-overlay ${overlayClass}`;
+    
+    // Show overlay with fade in
+    setTimeout(() => {
+        introOverlay.classList.add('show');
+    }, 50);
+    
+    // Hide overlay after 2 seconds and call callback
+    setTimeout(() => {
+        introOverlay.classList.remove('show');
+        
+        // Wait for fade out transition to complete before calling callback
+        setTimeout(() => {
+            if (callback) callback();
+        }, 500);
+    }, 2000);
+}
+
+// Type message in chat input (for user messages)
+function typeInChatInput(message, callback) {
+    const chatInput = document.getElementById('chatInput');
+    chatInput.value = '';
+    chatInput.focus();
+    
+    let i = 0;
+    function typeChar() {
+        if (i < message.length) {
+            chatInput.value += message.charAt(i);
+            i++;
+            setTimeout(typeChar, 50); // 50ms per character
+        } else {
+            // After typing is complete, wait a moment then clear and call callback
+            setTimeout(() => {
+                chatInput.value = '';
+                chatInput.blur();
+                if (callback) callback();
+            }, 500);
+        }
+    }
+    
+    typeChar();
+}
+
+// Schedule Talent Interview
+function scheduleTalentInterview() {
+    // Simulate scheduling animation
+    setTimeout(() => {
+        showSuccessScreen('talent');
+    }, 1500);
+}
