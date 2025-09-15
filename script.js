@@ -11,9 +11,9 @@ const chatFlows = {
     expense: [
         { type: 'bot', message: 'Welcome to ExpenseClaim! I can help you submit expense reports instantly.' },
         { type: 'bot', message: 'Please upload your receipt to get started.' },
-        { type: 'user', message: 'Here is my business lunch receipt from The Blue Orchid.', file: 'receipt.jpg', showPreview: 'receipt' },
+        { type: 'user', message: 'Here is my business lunch receipt from The Blue Orchid.', file: 'receipt_blue_orchid.jpg', showPreview: 'receipt' },
         { type: 'bot', message: 'Processing your receipt...', processing: true },
-        { type: 'bot', message: 'Great! I found the following information:\n• Vendor: The Blue Orchid\n• Total Amount: $197.10\n• Date: January 15, 2025\n• Payment: Corporate Card ****4589' },
+        { type: 'bot', message: 'Great! I found the following information:\\n• Vendor: The Blue Orchid\\n• Total Amount: $197.10\\n• Date: January 15, 2025\\n• Payment: Corporate Card ****4589' },
         { type: 'bot', message: 'I\'ve populated the expense form. Please review and submit when ready.' },
         { type: 'system', action: 'fillExpenseForm' },
         { type: 'user', message: 'Perfect! The details are accurate. Submitting now.' },
@@ -23,9 +23,9 @@ const chatFlows = {
     leave: [
         { type: 'bot', message: 'Welcome to ApplyLeave! I\'ll help you apply for leave based on your travel documents.' },
         { type: 'bot', message: 'Please upload your flight ticket or boarding pass.' },
-        { type: 'user', message: 'Here\'s my flight ticket to New York.', file: 'boarding_pass.pdf', showPreview: 'ticket' },
+        { type: 'user', message: 'Here\'s my flight ticket to New York.', file: 'flight_ticket_NYC.pdf', showPreview: 'ticket' },
         { type: 'bot', message: 'Analyzing your travel document...', processing: true },
-        { type: 'bot', message: 'Perfect! I detected:\n• Departure: February 20, 2025\n• Return: February 24, 2025\n• Destination: New York' },
+        { type: 'bot', message: 'Perfect! I detected:\\n• Departure: February 20, 2025\\n• Return: February 24, 2025\\n• Destination: New York' },
         { type: 'bot', message: 'Your leave application has been prepared. Review the details on the right.' },
         { type: 'system', action: 'fillLeaveForm' },
         { type: 'user', message: 'Everything looks correct. Please submit.' },
@@ -35,9 +35,9 @@ const chatFlows = {
     talent: [
         { type: 'bot', message: 'Welcome to TalentMatch! I\'ll analyze resumes and match them with open positions.' },
         { type: 'bot', message: 'Please upload a candidate\'s resume for analysis.' },
-        { type: 'user', message: 'I\'m uploading John Doe\'s resume for the senior developer position.', file: 'resume_john_doe.pdf', showPreview: 'resume' },
+        { type: 'user', message: 'I\'m uploading John Doe\'s resume for the senior developer position.', file: 'resume_john_doe.docx', showPreview: 'resume' },
         { type: 'bot', message: 'Analyzing resume and extracting skills...', processing: true },
-        { type: 'bot', message: 'Excellent candidate! Key findings:\n• 7 years experience\n• Strong in Python, React, AWS\n• Leadership experience' },
+        { type: 'bot', message: 'Excellent candidate! Key findings:\\n• 7 years experience\\n• Strong in Python, React, AWS\\n• Leadership experience' },
         { type: 'bot', message: 'Matching with open positions in your organization...' },
         { type: 'system', action: 'fillTalentDashboard' },
         { type: 'bot', message: 'Found 3 strong matches! Best fit: Senior Full Stack Developer (95% match)' },
@@ -49,8 +49,6 @@ const chatFlows = {
 
 // Initialize on DOM Load
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🚀 DOM Content Loaded - Starting initialization');
-    
     initializeControls();
     initializeTabs();
     initializeUploadZone();
@@ -60,23 +58,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // Keyboard shortcuts
     document.addEventListener('keydown', handleKeyPress);
     
-    console.log('✅ All components initialized');
-    console.log('🎮 Auto-play status:', isAutoPlay);
-    
     // Start auto-play by default - automatically start with expense tab
     if (isAutoPlay) {
-        console.log('🔥 Starting auto-play mode');
         updatePlayPauseButton();
         
         // Auto-start with intro slide first
         setTimeout(() => {
-            console.log('⏰ Auto-start timer triggered');
-            
             // Start with intro slide for expense tab
             switchTab('expense');
         }, 500);
-    } else {
-        console.log('⏸️ Auto-play is disabled');
     }
 });
 
@@ -160,9 +150,18 @@ function initializeTabs() {
 }
 
 function switchTab(tabName) {
+    // Prevent conflicts - stop any ongoing animations
+    isPaused = true;
+    
     // Update active tab
     currentTab = tabName;
     currentStep = 0;
+    
+    // Clear all timeouts and intervals to prevent conflicts
+    const highestTimeoutId = setTimeout(() => {}, 0);
+    for (let i = 0; i < highestTimeoutId; i++) {
+        clearTimeout(i);
+    }
     
     // Show intro overlay first
     showIntroSlide(tabName, () => {
@@ -199,18 +198,26 @@ function switchTab(tabName) {
             screen.classList.remove('show');
         });
         
-        // Start the flow
-        if (isAutoPlay && !isPaused) {
-            setTimeout(() => processNextStep(), 500);
-        } else {
-            // Show first message
-            const flow = chatFlows[currentTab];
-            if (flow && flow[0]) {
-                addMessage(flow[0].type, flow[0].message);
-                currentStep = 1;
-                updateChatInputPlaceholder();
-            }
+        // Reset auto-play state
+        if (isAutoPlay) {
+            isPaused = false;
+            updatePlayPauseButton();
         }
+        
+        // Start the flow with a clean slate
+        setTimeout(() => {
+            if (isAutoPlay && !isPaused) {
+                processNextStep();
+            } else {
+                // Show first message
+                const flow = chatFlows[currentTab];
+                if (flow && flow[0]) {
+                    addMessage(flow[0].type, flow[0].message);
+                    currentStep = 1;
+                    updateChatInputPlaceholder();
+                }
+            }
+        }, 100);
         
         updateSceneIndicator();
     });
@@ -243,10 +250,10 @@ function addMessage(type, message, options = {}) {
         if (isAutoPlay && !options.processing) {
             const paragraph = document.createElement('p');
             messageContent.appendChild(paragraph);
-            typewriterEffect(paragraph, message.replace(/\n/g, '<br>'), 30);
+            typewriterEffect(paragraph, message.replace(/\\n/g, '<br>'), 30);
         } else {
             messageContent.innerHTML = `
-                <p>${message.replace(/\n/g, '<br>')}</p>
+                <p>${message.replace(/\\n/g, '<br>')}</p>
                 ${options.processing ? `
                     <div class="processing-indicator">
                         <i class="fas fa-spinner"></i>
@@ -255,6 +262,10 @@ function addMessage(type, message, options = {}) {
                 ` : ''}
             `;
         }
+        
+        // Scroll to chat for bot messages on mobile
+        setTimeout(() => scrollToChat(), 100);
+        
     } else if (type === 'user') {
         messageDiv.className = 'user-message';
         messageDiv.innerHTML = `
@@ -271,6 +282,9 @@ function addMessage(type, message, options = {}) {
                 ` : ''}
             </div>
         `;
+        
+        // Scroll to chat for user messages on mobile
+        setTimeout(() => scrollToChat(), 100);
     }
     
     if (messageDiv.className) {
@@ -281,6 +295,12 @@ function addMessage(type, message, options = {}) {
     // Show upload preview if specified
     if (options.showPreview) {
         showUploadPreview(options.showPreview);
+        // Scroll to preview after it's shown, then back to chat after a delay
+        setTimeout(() => {
+            scrollToUploadPreview();
+            // Auto-scroll back to chat after showing preview for 3 seconds
+            setTimeout(() => scrollToChat(), 3000);
+        }, 300);
     }
 }
 
@@ -296,7 +316,7 @@ function typewriterEffect(element, text, speed) {
     
     function type() {
         if (i < textContent.length) {
-            if (textContent.charAt(i) === '\n' || (html.indexOf('<br>') !== -1 && i === html.indexOf('<br>'))) {
+            if (textContent.charAt(i) === '\\n' || (html.indexOf('<br>') !== -1 && i === html.indexOf('<br>'))) {
                 element.innerHTML += '<br>';
             } else {
                 element.innerHTML += textContent.charAt(i);
@@ -316,6 +336,40 @@ function typewriterEffect(element, text, speed) {
     type();
 }
 
+// Get file type icon based on file extension
+function getFileTypeIcon(filename) {
+    if (!filename) return 'fas fa-file';
+    
+    const extension = filename.split('.').pop().toLowerCase();
+    switch (extension) {
+        case 'jpg':
+        case 'jpeg':
+        case 'png':
+        case 'gif':
+        case 'bmp':
+            return 'fas fa-image';
+        case 'pdf':
+            return 'fas fa-file-pdf';
+        case 'doc':
+        case 'docx':
+            return 'fas fa-file-word';
+        case 'xls':
+        case 'xlsx':
+            return 'fas fa-file-excel';
+        case 'ppt':
+        case 'pptx':
+            return 'fas fa-file-powerpoint';
+        case 'txt':
+            return 'fas fa-file-alt';
+        case 'zip':
+        case 'rar':
+        case '7z':
+            return 'fas fa-file-archive';
+        default:
+            return 'fas fa-file';
+    }
+}
+
 // Show Upload Preview
 function showUploadPreview(type) {
     // Hide all previews first
@@ -323,13 +377,31 @@ function showUploadPreview(type) {
     document.getElementById('ticketPreview').style.display = 'none';
     document.getElementById('resumePreview').style.display = 'none';
     
-    // Show relevant preview
+    // Show relevant preview with appropriate file icon
     if (type === 'receipt') {
-        document.getElementById('receiptPreview').style.display = 'block';
+        const preview = document.getElementById('receiptPreview');
+        preview.style.display = 'block';
+        // Update file icon based on type
+        const fileIcon = preview.querySelector('.file-type-icon');
+        if (fileIcon) {
+            fileIcon.className = 'file-type-icon ' + getFileTypeIcon('receipt_blue_orchid.jpg');
+        }
     } else if (type === 'ticket') {
-        document.getElementById('ticketPreview').style.display = 'block';
+        const preview = document.getElementById('ticketPreview');
+        preview.style.display = 'block';
+        // Update file icon based on type
+        const fileIcon = preview.querySelector('.file-type-icon');
+        if (fileIcon) {
+            fileIcon.className = 'file-type-icon ' + getFileTypeIcon('flight_ticket_NYC.pdf');
+        }
     } else if (type === 'resume') {
-        document.getElementById('resumePreview').style.display = 'block';
+        const preview = document.getElementById('resumePreview');
+        preview.style.display = 'block';
+        // Update file icon based on type
+        const fileIcon = preview.querySelector('.file-type-icon');
+        if (fileIcon) {
+            fileIcon.className = 'file-type-icon ' + getFileTypeIcon('resume_john_doe.docx');
+        }
     }
 }
 
@@ -524,6 +596,9 @@ function resetForms() {
 
 // Form Filling Animations
 function fillExpenseForm() {
+    // Scroll to system panel first
+    setTimeout(() => scrollToSystem(), 100);
+    
     const fields = [
         { id: 'expense-vendor', value: 'The Blue Orchid', delay: 200 },
         { id: 'expense-amount', value: '$197.10', delay: 400 },
@@ -571,10 +646,15 @@ function fillExpenseForm() {
             <i class="fas fa-check-circle"></i>
             <span>Form populated successfully! Ready to submit.</span>
         `;
+        // Scroll to submit button
+        setTimeout(() => scrollToSubmitButton(), 200);
     }, 1200);
 }
 
 function fillLeaveForm() {
+    // Scroll to system panel first
+    setTimeout(() => scrollToSystem(), 100);
+    
     const fields = [
         { id: 'leave-from', value: 'February 20, 2025', delay: 200 },
         { id: 'leave-to', value: 'February 24, 2025', delay: 400 },
@@ -614,10 +694,15 @@ function fillLeaveForm() {
             <i class="fas fa-check-circle"></i>
             <span>Leave dates extracted and form populated!</span>
         `;
+        // Scroll to submit button
+        setTimeout(() => scrollToSubmitButton(), 200);
     }, 1200);
 }
 
 function fillTalentDashboard() {
+    // Scroll to system panel first
+    setTimeout(() => scrollToSystem(), 100);
+    
     // Fill candidate info
     setTimeout(() => {
         document.getElementById('candidate-info').innerHTML = `
@@ -842,24 +927,18 @@ function showSuccessScreen(type) {
 
 // Process Next Step
 function processNextStep() {
-    console.log('🎯 processNextStep called - isPaused:', isPaused, 'currentTab:', currentTab, 'currentStep:', currentStep);
-    
     if (isPaused) {
-        console.log('⏸️ Process paused - returning early');
         return;
     }
     
     const flow = chatFlows[currentTab];
-    console.log('📊 Flow for', currentTab, ':', flow ? `${flow.length} steps` : 'not found');
     
     if (!flow || currentStep >= flow.length) {
-        console.log('🔚 Flow completed or not found');
         if (isAutoPlay) {
             // Move to next tab
             const tabs = ['expense', 'leave', 'talent'];
             const currentIndex = tabs.indexOf(currentTab);
             if (currentIndex < tabs.length - 1) {
-                console.log('➡️ Moving to next tab:', tabs[currentIndex + 1]);
                 setTimeout(() => {
                     if (!isPaused) {
                         switchTab(tabs[currentIndex + 1]);
@@ -867,7 +946,6 @@ function processNextStep() {
                 }, 2000);
             } else {
                 // Show ROI dashboard
-                console.log('📈 Showing ROI dashboard');
                 setTimeout(() => {
                     if (!isPaused) {
                         showROIDashboard();
@@ -879,10 +957,8 @@ function processNextStep() {
     }
     
     const step = flow[currentStep];
-    console.log('📝 Processing step', currentStep, ':', step);
     
     if (step.type === 'system') {
-        console.log('⚙️ System action:', step.action);
         // Execute system action
         if (step.action === 'fillExpenseForm') {
             fillExpenseForm();
@@ -905,26 +981,20 @@ function processNextStep() {
         }
         
         currentStep++;
-        console.log('⏭️ System step completed, currentStep now:', currentStep);
         if (isAutoPlay && !isPaused) {
             setTimeout(() => processNextStep(), 2000);
         }
     } else {
-        console.log('💬 Message step - type:', step.type, 'message:', step.message.substring(0, 50) + '...');
         // Show typing indicator for bot messages
         let typingIndicator = null;
         if (step.type === 'bot' && !step.processing) {
-            console.log('⌨️ Showing typing indicator');
             typingIndicator = showTypingIndicator();
         }
         
         setTimeout(() => {
             if (typingIndicator) {
                 removeTypingIndicator(typingIndicator);
-                console.log('🗑️ Removed typing indicator');
             }
-            
-            console.log('📤 Adding message to chat');
             
             // For user messages, show typing in input first
             if (step.type === 'user') {
@@ -936,11 +1006,9 @@ function processNextStep() {
                     });
                     
                     currentStep++;
-                    console.log('⏭️ Message step completed, currentStep now:', currentStep);
                     
                     if (isAutoPlay && !isPaused) {
                         const delay = step.processing ? 3000 : 2000;
-                        console.log('⏰ Scheduling next step in', delay, 'ms');
                         setTimeout(() => processNextStep(), delay);
                     }
                 });
@@ -952,11 +1020,9 @@ function processNextStep() {
                 });
                 
                 currentStep++;
-                console.log('⏭️ Message step completed, currentStep now:', currentStep);
                 
                 if (isAutoPlay && !isPaused) {
                     const delay = step.processing ? 3000 : 2000;
-                    console.log('⏰ Scheduling next step in', delay, 'ms');
                     setTimeout(() => processNextStep(), delay);
                 }
             }
@@ -971,6 +1037,15 @@ function processNextStep() {
 
 // Show ROI Dashboard
 function showROIDashboard() {
+    // Pause to prevent conflicts during transition
+    isPaused = true;
+    
+    // Clear any existing timeouts to prevent conflicts
+    const highestTimeoutId = setTimeout(() => {}, 0);
+    for (let i = 0; i < highestTimeoutId; i++) {
+        clearTimeout(i);
+    }
+    
     // Hide all tabs
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.classList.remove('active');
@@ -986,27 +1061,40 @@ function showROIDashboard() {
     document.getElementById('ticketPreview').style.display = 'none';
     document.getElementById('resumePreview').style.display = 'none';
     
+    // Hide all success screens
+    document.querySelectorAll('.success-screen').forEach(screen => {
+        screen.classList.remove('show');
+    });
+    
     // Show ROI dashboard
     document.getElementById('roi-dashboard').classList.add('active');
     
-    // Clear chat
+    // Clear chat and add dashboard message
     clearChat();
-    addMessage('bot', 'Here\'s the impact Smartgent can have on your enterprise operations!');
-    
-    // Animate metrics
-    animateMetrics();
+    setTimeout(() => {
+        addMessage('bot', 'Here\'s the impact Smartgent can have on your enterprise operations!');
+        
+        // Animate metrics after a short delay
+        setTimeout(() => {
+            animateMetrics();
+        }, 500);
+        
+        // Resume auto-play and restart loop after showing ROI dashboard
+        if (isAutoPlay) {
+            isPaused = false;
+            updatePlayPauseButton();
+            
+            setTimeout(() => {
+                if (isAutoPlay && !isPaused) {
+                    // Smooth restart - go back to expense tab
+                    switchTab('expense');
+                }
+            }, 7000);
+        }
+    }, 200);
     
     // Update indicator
     updateSceneIndicator();
-    
-    // Restart after delay if auto-play
-    if (isAutoPlay && !isPaused) {
-        setTimeout(() => {
-            if (!isPaused) {
-                switchTab('expense');
-            }
-        }, 8000);
-    }
 }
 
 // Animate Metrics
@@ -1044,8 +1132,6 @@ function initializeUploadZone() {
     const uploadZone = document.getElementById('uploadZone');
     const fileInput = document.getElementById('fileInput');
     const nextBtn = document.getElementById('nextBtn');
-    
-    console.log('📁 Upload zone elements:', { uploadZone: !!uploadZone, fileInput: !!fileInput, nextBtn: !!nextBtn });
     
     if (uploadZone) {
         uploadZone.addEventListener('click', () => {
@@ -1215,10 +1301,15 @@ function typeInChatInput(message, callback) {
     chatInput.value = '';
     chatInput.focus();
     
+    // Decode HTML entities to get clean text for typing
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = message;
+    const cleanMessage = tempDiv.textContent || tempDiv.innerText || message;
+    
     let i = 0;
     function typeChar() {
-        if (i < message.length) {
-            chatInput.value += message.charAt(i);
+        if (i < cleanMessage.length) {
+            chatInput.value += cleanMessage.charAt(i);
             i++;
             setTimeout(typeChar, 50); // 50ms per character
         } else {
@@ -1232,6 +1323,52 @@ function typeInChatInput(message, callback) {
     }
     
     typeChar();
+}
+
+// Mobile Auto-Scroll Functions
+function isMobile() {
+    return window.innerWidth <= 768;
+}
+
+function scrollToChat() {
+    if (isMobile()) {
+        const chatPanel = document.querySelector('.chatbot-panel');
+        if (chatPanel) {
+            chatPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            chatPanel.classList.add('scroll-to-chat');
+            setTimeout(() => chatPanel.classList.remove('scroll-to-chat'), 1000);
+        }
+    }
+}
+
+function scrollToSystem() {
+    if (isMobile()) {
+        const systemPanel = document.querySelector('.system-panel');
+        if (systemPanel) {
+            systemPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            systemPanel.classList.add('scroll-to-system');
+            setTimeout(() => systemPanel.classList.remove('scroll-to-system'), 1000);
+        }
+    }
+}
+
+function scrollToUploadPreview() {
+    if (isMobile()) {
+        const activePreview = document.querySelector('.upload-preview[style*="block"]');
+        if (activePreview) {
+            activePreview.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+}
+
+function scrollToSubmitButton() {
+    if (isMobile()) {
+        const activeSystem = document.querySelector('.system-interface.active');
+        const submitBtn = activeSystem?.querySelector('.submit-btn');
+        if (submitBtn) {
+            submitBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
 }
 
 // Schedule Talent Interview
