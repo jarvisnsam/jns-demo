@@ -2,39 +2,262 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="img/jns_logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jarvis and Sam Demo</title>
     
-    <!-- Boxicons -->
+    <!-- Meta Tags -->
+    <meta name="description" content="Explore our AI-powered demo solutions - Smartgent and Voicebot. Experience the future of enterprise automation." />
+    <meta name="author" content="Jarvis and Sam" />
+    
+    <!-- CSS Files -->
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
+    <!-- Custom Styles -->
     <style>
+        :root {
+            --fontFamily: 'Inter', sans-serif;
+            --mainColor: #00BFFF;
+            --secondColor: #FF3333;
+            --darkBg: #05051E;
+            --whiteColor: #ffffff;
+            --contentTextColor: rgba(224, 224, 224, 0.9);
+        }
+        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-
+        
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: #0a0a0a;
+            font-family: var(--fontFamily);
+            background-color: var(--darkBg);
+            color: var(--contentTextColor);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            padding: 20px;
-            overflow-x: hidden;
         }
-
-        .container {
+        
+        /* Simple Header */
+        .simple-header {
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0, 191, 255, 0.2);
+            padding: 15px 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+        
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .logo-section {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            gap: 15px;
+        }
+        
+        .logo-section img {
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
+        }
+        
+        .logo-section h1 {
+            font-size: 1.8rem;
+            font-weight: 900;
+            background: linear-gradient(90deg, #00BFFF, #FF3333);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 0;
+            color: inherit;
+        }
+        
+        .logo-section:hover h1 {
+            opacity: 0.8;
+        }
+        
+        /* Main Content */
+        main {
+            flex: 1;
+            margin-top: 80px;
+        }
+        
+        .demo-section {
+            min-height: calc(100vh - 160px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 80px 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .demo-container {
             max-width: 1200px;
             width: 100%;
             animation: fadeInUp 0.8s ease;
+            position: relative;
+            z-index: 1;
         }
-
+        
+        .demo-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 50px;
+            margin: 100px 0 50px 0;
+            flex-wrap: wrap;
+        }
+        
+        .demo-button {
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.6), rgba(0, 191, 255, 0.15));
+            border: 2px solid rgba(0, 191, 255, 0.4);
+            border-radius: 25px;
+            padding: 60px 80px;
+            text-decoration: none;
+            color: white;
+            box-shadow: 0 20px 60px rgba(0, 191, 255, 0.3);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+        
+        .demo-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 191, 255, 0.3), transparent);
+            transition: left 0.6s ease;
+        }
+        
+        .demo-button:hover {
+            transform: translateY(-10px) scale(1.05);
+            box-shadow: 0 30px 80px rgba(0, 191, 255, 0.4);
+            border-color: rgba(0, 191, 255, 0.6);
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.7), rgba(0, 191, 255, 0.25));
+            text-decoration: none;
+        }
+        
+        .demo-button:hover::before {
+            left: 100%;
+        }
+        
+        .demo-button i {
+            font-size: 5rem;
+            margin-bottom: 20px;
+            background: linear-gradient(90deg, #00BFFF, #FF3333);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 20px rgba(0, 191, 255, 0.3));
+            transition: transform 0.3s ease;
+        }
+        
+        .demo-button:hover i {
+            transform: scale(1.15) rotate(5deg);
+        }
+        
+        .demo-button h3 {
+            font-size: 2.2rem;
+            font-weight: 600;
+            color: #ffffff;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin: 0;
+        }
+        
+        /* Floating Background Icons */
+        .demo-bg-icons {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .demo-bg-icon {
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.08);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            animation: float 15s infinite ease-in-out;
+            opacity: 0.4;
+        }
+        
+        .demo-bg-icon i {
+            font-size: 60px;
+            background: linear-gradient(90deg, #00BFFF, #FF3333);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            opacity: 0.8;
+        }
+        
+        .demo-bg-icon.icon-1 {
+            top: 10%;
+            left: 5%;
+            animation-delay: 0s;
+        }
+        
+        .demo-bg-icon.icon-2 {
+            top: 20%;
+            right: 8%;
+            animation-delay: -2s;
+        }
+        
+        .demo-bg-icon.icon-3 {
+            bottom: 20%;
+            left: 3%;
+            animation-delay: -4s;
+        }
+        
+        .demo-bg-icon.icon-4 {
+            bottom: 10%;
+            right: 5%;
+            animation-delay: -1s;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            25% { transform: translateY(-10px) rotate(3deg); }
+            50% { transform: translateY(0) rotate(0deg); }
+            75% { transform: translateY(10px) rotate(-3deg); }
+        }
+        
         @keyframes fadeInUp {
             from {
                 opacity: 0;
@@ -45,239 +268,169 @@
                 transform: translateY(0);
             }
         }
-
-        .header {
-            text-align: center;
-            margin-bottom: 80px;
-            color: white;
-        }
-
-        .header h1 {
-            font-size: 3.5rem;
-            font-weight: 700;
-            margin-bottom: 15px;
-            text-shadow: 0 0 30px rgba(255,255,255,0.3);
-            animation: titleGlow 2s ease-in-out infinite alternate;
-        }
-
-        @keyframes titleGlow {
-            from {
-                text-shadow: 0 0 30px rgba(255,255,255,0.3);
-            }
-            to {
-                text-shadow: 0 0 50px rgba(255,255,255,0.6);
-            }
-        }
-
-        .header p {
-            font-size: 1.2rem;
-            font-weight: 300;
-            opacity: 0.8;
-            color: #888;
-        }
-
-        .demo-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 50px;
-            margin-bottom: 50px;
-            flex-wrap: wrap;
-        }
-
-        .demo-button {
-            background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
-            border: 2px solid #333;
-            border-radius: 25px;
-            padding: 60px 80px;
-            text-decoration: none;
-            color: white;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.1);
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .demo-button::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, transparent, rgba(99, 102, 241, 0.2));
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .demo-button:hover {
-            transform: translateY(-10px) scale(1.05);
-            box-shadow: 0 30px 80px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.2);
-            border-color: #555;
-        }
-
-        .demo-button:hover::before {
-            opacity: 1;
-        }
-
-        .demo-button i {
-            font-size: 5rem;
-            margin-bottom: 20px;
-            color: #fff;
-            transition: transform 0.3s ease;
-            filter: drop-shadow(0 0 20px rgba(255,255,255,0.3));
-        }
-
-        .demo-button:hover i {
-            transform: scale(1.15) rotate(5deg);
-        }
-
-        .demo-button h2 {
-            font-size: 2.2rem;
-            font-weight: 600;
-            color: #ffffff;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        .footer {
-            text-align: center;
-            color: #666;
+        
+        /* Simple Footer */
+        .simple-footer {
+            background: rgba(0, 0, 0, 0.95);
+            border-top: 1px solid rgba(0, 191, 255, 0.2);
             padding: 20px 0;
-            margin-top: 60px;
+            text-align: center;
         }
-
-        .footer p {
-            font-size: 0.95rem;
+        
+        .simple-footer p {
+            color: var(--contentTextColor);
+            margin: 0;
+            font-size: 0.9rem;
         }
-
-        .footer a {
-            color: #999;
-            text-decoration: underline;
-        }
-
+        
         /* Responsive Design */
         @media (max-width: 768px) {
-            .header h1 {
-                font-size: 2rem;
+            .simple-header {
+                padding: 12px 0;
             }
-
-            .header p {
-                font-size: 1rem;
+            
+            .logo-section h1 {
+                font-size: 1.3rem;
             }
-
+            
+            .logo-section img {
+                width: 40px;
+                height: 40px;
+            }
+            
+            main {
+                margin-top: 70px;
+            }
+            
+            .demo-section {
+                padding: 30px 15px;
+                min-height: calc(100vh - 140px);
+            }
+            
             .demo-buttons {
                 flex-direction: column;
                 align-items: center;
                 gap: 30px;
+                margin: 50px 0;
             }
-
+            
             .demo-button {
                 padding: 40px 60px;
                 width: 90%;
                 max-width: 350px;
             }
-
+            
             .demo-button i {
                 font-size: 3rem;
             }
-
-            .demo-button h2 {
+            
+            .demo-button h3 {
                 font-size: 1.5rem;
             }
-
+            
+            .demo-bg-icon {
+                width: 90px;
+                height: 90px;
+            }
+            
+            .demo-bg-icon i {
+                font-size: 40px;
+            }
         }
-
+        
         @media (max-width: 480px) {
-            body {
-                padding: 15px;
+            .logo-section h1 {
+                font-size: 1.1rem;
+                letter-spacing: 0;
             }
-
-            .header {
-                margin-bottom: 30px;
-            }
-
-            .header h1 {
-                font-size: 1.75rem;
-            }
-
+            
+            
             .demo-button {
                 padding: 35px 50px;
             }
         }
-
+        
         /* Loading animation */
         .demo-button {
             animation: fadeInUp 0.8s ease backwards;
         }
-
+        
         .demo-button:nth-child(1) {
             animation-delay: 0.2s;
         }
-
+        
         .demo-button:nth-child(2) {
             animation-delay: 0.4s;
         }
-
-
     </style>
 </head>
 <body>
-    <div class="container">
-        <header class="header">
-            <h1>Jarvis and Sam Demo</h1>
-            <p>AI-powered solutions for enterprise</p>
-        </header>
-
-        <div class="demo-buttons">
-            <a href="./smartgent/" class="demo-button">
-                <i class='bx bx-bot'></i>
-                <h2>Smartgent</h2>
-            </a>
-
-            <a href="./voicebot/" class="demo-button">
-                <i class='bx bx-microphone'></i>
-                <h2>Voicebot</h2>
+    <!-- Simple Header -->
+    <header class="simple-header">
+        <div class="header-container">
+            <a href="https://www.jarvisnsam.com/" class="logo-section" target="_blank">
+                <img src="img/jns_logo.png" alt="Jarvis and Sam" />
+                <h1>Jarvis and Sam Demo</h1>
             </a>
         </div>
+    </header>
 
-        <footer class="footer">
-            <p>© 2025 JNS Solutions. Built with passion for innovation.</p>
-            <p>Learn more at <a href="https://jarvisnsam.com" target="_blank">jarvisnsam.com</a></p>
-        </footer>
-    </div>
+    <!-- Main Content -->
+    <main>
+        <section class="demo-section">
+            <!-- Floating Background Icons -->
+            <div class="demo-bg-icons">
+                <div class="demo-bg-icon icon-1"><i class="bx bx-code-alt"></i></div>
+                <div class="demo-bg-icon icon-2"><i class="bx bx-chip"></i></div>
+                <div class="demo-bg-icon icon-3"><i class="bx bx-network-chart"></i></div>
+                <div class="demo-bg-icon icon-4"><i class="bx bx-data"></i></div>
+            </div>
+            
+            <div class="demo-container">
+                <div class="demo-buttons">
+                    <a href="./smartgent/" class="demo-button">
+                        <i class='bx bx-bot'></i>
+                        <h3>Smartgent</h3>
+                    </a>
+
+                    <a href="./voicebot/" class="demo-button">
+                        <i class='bx bx-microphone'></i>
+                        <h3>Voicebot</h3>
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Simple Footer -->
+    <footer class="simple-footer">
+        <p>© 2025 Jarvis and Sam. All rights reserved.</p>
+    </footer>
 
     <script>
-        // Add interactive animations when page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            // Add ripple effect on button click
-            const buttons = document.querySelectorAll('.demo-button');
-            
-            buttons.forEach(button => {
-                button.addEventListener('click', function(e) {
-                    // Create ripple effect on click
-                    const ripple = document.createElement('span');
-                    ripple.style.position = 'absolute';
-                    ripple.style.width = ripple.style.height = '40px';
-                    ripple.style.background = 'rgba(255, 255, 255, 0.3)';
-                    ripple.style.borderRadius = '50%';
-                    ripple.style.transform = 'translate(-50%, -50%)';
-                    ripple.style.pointerEvents = 'none';
-                    ripple.style.animation = 'ripple 0.6s ease-out';
-                    
-                    const rect = this.getBoundingClientRect();
-                    ripple.style.left = (e.clientX - rect.left) + 'px';
-                    ripple.style.top = (e.clientY - rect.top) + 'px';
-                    
-                    this.appendChild(ripple);
-                    
-                    setTimeout(() => {
-                        ripple.remove();
-                    }, 600);
-                });
+        // Add ripple effect on demo button click
+        const buttons = document.querySelectorAll('.demo-button');
+        buttons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                // Create ripple effect on click
+                const ripple = document.createElement('span');
+                ripple.style.position = 'absolute';
+                ripple.style.width = ripple.style.height = '40px';
+                ripple.style.background = 'rgba(255, 255, 255, 0.3)';
+                ripple.style.borderRadius = '50%';
+                ripple.style.transform = 'translate(-50%, -50%)';
+                ripple.style.pointerEvents = 'none';
+                ripple.style.animation = 'ripple 0.6s ease-out';
+                
+                const rect = this.getBoundingClientRect();
+                ripple.style.left = (e.clientX - rect.left) + 'px';
+                ripple.style.top = (e.clientY - rect.top) + 'px';
+                
+                this.appendChild(ripple);
+                
+                setTimeout(() => {
+                    ripple.remove();
+                }, 600);
             });
         });
 
@@ -293,13 +446,6 @@
             }
         `;
         document.head.appendChild(style);
-
-        // Parallax effect on scroll
-        window.addEventListener('scroll', () => {
-            const scrolled = window.pageYOffset;
-            const parallax = document.querySelector('body');
-            parallax.style.backgroundPositionY = -(scrolled * 0.5) + 'px';
-        });
     </script>
 </body>
 </html>

@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="../img/jns_logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Voicebot Demo - Jarvis and Sam</title>
     
@@ -9,9 +10,18 @@
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
     <style>
+        :root {
+            --fontFamily: 'Inter', sans-serif;
+            --mainColor: #00BFFF;
+            --secondColor: #FF3333;
+            --darkBg: #05051E;
+            --whiteColor: #ffffff;
+            --contentTextColor: rgba(224, 224, 224, 0.9);
+        }
+        
         * {
             margin: 0;
             padding: 0;
@@ -19,11 +29,71 @@
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: #0a0a0a;
+            font-family: var(--fontFamily);
+            background-color: var(--darkBg);
+            color: var(--contentTextColor);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+        }
+        
+        /* Simple Header */
+        .simple-header {
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0, 191, 255, 0.2);
+            padding: 15px 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+        
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .logo-section {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            gap: 15px;
+        }
+        
+        .logo-section img {
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
+        }
+        
+        .logo-section h1 {
+            font-size: 1.8rem;
+            font-weight: 900;
+            background: linear-gradient(90deg, #00BFFF, #FF3333);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 0;
+            color: inherit;
+        }
+        
+        .logo-section:hover h1 {
+            opacity: 0.8;
+        }
+        
+        /* Main Content */
+        main {
+            flex: 1;
+            margin-top: 80px;
+            display: flex;
             align-items: center;
             justify-content: center;
             padding: 20px;
@@ -46,31 +116,34 @@
             }
         }
 
-        .header {
+        .content-header {
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: 25px;
             color: white;
         }
 
-        .header h1 {
+        .content-header h2 {
             font-size: 3rem;
             font-weight: 700;
             margin-bottom: 10px;
-            text-shadow: 0 0 30px rgba(255,255,255,0.3);
+            background: linear-gradient(90deg, #00BFFF, #FF3333);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 15px;
         }
 
-        .header h1 i {
+        .content-header h2 i {
             font-size: 2.5rem;
-            filter: drop-shadow(0 0 15px rgba(255,255,255,0.5));
+            filter: drop-shadow(0 0 15px rgba(0, 191, 255, 0.5));
         }
 
-        .header p {
+        .content-header p {
             font-size: 1.1rem;
-            color: #999;
+            color: var(--contentTextColor);
             margin-bottom: 20px;
         }
 
@@ -79,9 +152,9 @@
             align-items: center;
             gap: 8px;
             padding: 10px 20px;
-            background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
-            border: 1px solid #333;
-            border-radius: 10px;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.6), rgba(0, 191, 255, 0.15));
+            border: 2px solid rgba(0, 191, 255, 0.4);
+            border-radius: 25px;
             color: white;
             text-decoration: none;
             transition: all 0.3s ease;
@@ -89,25 +162,28 @@
         }
 
         .back-button:hover {
-            background: linear-gradient(135deg, #2d2d2d, #3a3a3a);
-            border-color: #555;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.7), rgba(0, 191, 255, 0.25));
+            border-color: rgba(0, 191, 255, 0.6);
             transform: translateX(-5px);
+            box-shadow: 0 10px 30px rgba(0, 191, 255, 0.3);
         }
 
         .video-wrapper {
-            background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.6), rgba(0, 191, 255, 0.15));
+            border: 2px solid rgba(0, 191, 255, 0.4);
             border-radius: 20px;
             padding: 5px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.1);
+            box-shadow: 0 20px 60px rgba(0, 191, 255, 0.3);
+            backdrop-filter: blur(10px);
             animation: glow 3s ease-in-out infinite alternate;
         }
 
         @keyframes glow {
             from {
-                box-shadow: 0 20px 60px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.1);
+                box-shadow: 0 20px 60px rgba(0, 191, 255, 0.3);
             }
             to {
-                box-shadow: 0 20px 80px rgba(99,102,241,0.3), inset 0 1px 0 rgba(255,255,255,0.2);
+                box-shadow: 0 20px 80px rgba(0, 191, 255, 0.5);
             }
         }
 
@@ -132,7 +208,7 @@
         .description {
             text-align: center;
             margin-top: 40px;
-            color: #888;
+            color: var(--contentTextColor);
         }
 
         .description p {
@@ -153,28 +229,63 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            color: #bbb;
+            color: var(--contentTextColor);
             font-size: 0.95rem;
         }
 
         .feature i {
             font-size: 1.2rem;
-            color: #667eea;
+            background: linear-gradient(90deg, #00BFFF, #FF3333);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        /* Simple Footer */
+        .simple-footer {
+            background: rgba(0, 0, 0, 0.95);
+            border-top: 1px solid rgba(0, 191, 255, 0.2);
+            padding: 20px 0;
+            text-align: center;
+        }
+        
+        .simple-footer p {
+            color: var(--contentTextColor);
+            margin: 0;
+            font-size: 0.9rem;
         }
 
         /* Responsive Design */
         @media (max-width: 768px) {
-            .header h1 {
+            .simple-header {
+                padding: 12px 0;
+            }
+            
+            .logo-section h1 {
+                font-size: 1.3rem;
+            }
+            
+            .logo-section img {
+                width: 40px;
+                height: 40px;
+            }
+            
+            main {
+                margin-top: 70px;
+                padding: 15px;
+            }
+            
+            .content-header h2 {
                 font-size: 2rem;
                 flex-direction: column;
                 gap: 10px;
             }
 
-            .header h1 i {
+            .content-header h2 i {
                 font-size: 2rem;
             }
 
-            .header p {
+            .content-header p {
                 font-size: 1rem;
             }
 
@@ -191,68 +302,90 @@
         }
 
         @media (max-width: 480px) {
-            .header h1 {
+            .logo-section h1 {
+                font-size: 1.1rem;
+                letter-spacing: 0;
+            }
+            
+            .content-header h2 {
                 font-size: 1.5rem;
             }
 
-            body {
+            main {
                 padding: 15px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header class="header">
-            <h1>
-                <i class='bx bx-microphone'></i>
-                Voicebot Demo
-            </h1>
-            <p>Experience the power of voice-enabled AI assistance</p>
-            <a href="../" class="back-button">
-                <i class='bx bx-arrow-back'></i>
-                Back to Demos
+    <!-- Simple Header -->
+    <header class="simple-header">
+        <div class="header-container">
+            <a href="https://www.jarvisnsam.com/" class="logo-section" target="_blank">
+                <img src="../img/jns_logo.png" alt="Jarvis and Sam" />
+                <h1>Jarvis and Sam Demo</h1>
             </a>
-        </header>
-
-        <div class="video-wrapper">
-            <div class="video-container">
-                <iframe 
-                    src="https://www.youtube.com/embed/beXa5nYhz7I" 
-                    title="Voicebot Demo - AI Voice Assistant"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                    allowfullscreen>
-                </iframe>
-            </div>
         </div>
+    </header>
+    
+    <!-- Main Content -->
+    <main>
+        <div class="container">
+            <header class="content-header">
+                <h2>
+                    <i class='bx bx-microphone'></i>
+                    Voicebot Demo
+                </h2>
+            </header>
 
-        <div class="description">
-            <p>Advanced voice-powered AI assistant with natural language processing</p>
-            <div class="features">
-                <div class="feature">
-                    <i class='bx bx-check-circle'></i>
-                    <span>Voice Commands</span>
-                </div>
-                <div class="feature">
-                    <i class='bx bx-check-circle'></i>
-                    <span>Natural Language</span>
-                </div>
-                <div class="feature">
-                    <i class='bx bx-check-circle'></i>
-                    <span>Real-time Response</span>
-                </div>
-                <div class="feature">
-                    <i class='bx bx-check-circle'></i>
-                    <span>Multi-language Support</span>
+            <div class="video-wrapper">
+                <div class="video-container">
+                    <iframe 
+                        src="https://www.youtube.com/embed/beXa5nYhz7I" 
+                        title="Voicebot Demo - AI Voice Assistant"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                        allowfullscreen>
+                    </iframe>
                 </div>
             </div>
+
+            <div class="description">
+                <a href="../" class="back-button" style="margin-bottom: 30px;">
+                    <i class='bx bx-arrow-back'></i>
+                    Back to Demos
+                </a>
+                <p style="margin-top: 30px;">Advanced voice-powered AI assistant with natural language processing</p>
+                <div class="features">
+                    <div class="feature">
+                        <i class='bx bx-check-circle'></i>
+                        <span>Voice Commands</span>
+                    </div>
+                    <div class="feature">
+                        <i class='bx bx-check-circle'></i>
+                        <span>Natural Language</span>
+                    </div>
+                    <div class="feature">
+                        <i class='bx bx-check-circle'></i>
+                        <span>Real-time Response</span>
+                    </div>
+                    <div class="feature">
+                        <i class='bx bx-check-circle'></i>
+                        <span>Multi-language Support</span>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
+    </main>
+
+    <!-- Simple Footer -->
+    <footer class="simple-footer">
+        <p>© 2025 Jarvis and Sam. All rights reserved.</p>
+    </footer>
 
     <script>
         // Add fade-in animation to elements when page loads
         document.addEventListener('DOMContentLoaded', function() {
-            const elements = document.querySelectorAll('.header, .video-wrapper, .description');
+            const elements = document.querySelectorAll('.content-header, .video-wrapper, .description');
             elements.forEach((el, index) => {
                 el.style.opacity = '0';
                 el.style.transform = 'translateY(20px)';
