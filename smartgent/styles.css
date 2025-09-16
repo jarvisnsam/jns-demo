@@ -1179,10 +1179,12 @@ body {
     }
 }
 
-/* Upload Preview Cards */
+/* Upload Preview Cards - Reduced Size */
 .upload-preview {
-    margin-top: 15px;
+    margin-top: 8px;
+    margin-bottom: 8px;
     animation: slideUp 0.5s ease;
+    transition: all 0.5s ease;
 }
 
 @keyframes slideUp {
@@ -1196,112 +1198,255 @@ body {
     }
 }
 
+/* Preview expand/minimize animations */
+.upload-preview.preview-expanded {
+    animation: expandPreview 0.5s ease forwards;
+}
+
+.upload-preview.preview-minimizing {
+    animation: minimizePreview 0.5s ease forwards;
+}
+
+@keyframes expandPreview {
+    0% {
+        opacity: 0;
+        transform: translateY(10px) scale(0.95);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes minimizePreview {
+    0% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.9);
+    }
+}
+
+/* Compact Preview Cards */
+.upload-preview.compact {
+    margin-top: 12px;
+    margin-bottom: 12px;
+}
+
+.preview-card-compact {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.preview-card-compact:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-color: #cbd5e1;
+}
+
+.preview-icon-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: #f8fafc;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+
+.preview-icon-section .file-type-icon {
+    font-size: 20px;
+}
+
+.preview-info-section {
+    flex: 1;
+    min-width: 0;
+}
+
+.preview-filename {
+    font-size: 12px;
+    color: #64748b;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.preview-details {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+    flex-wrap: wrap;
+}
+
+.preview-highlight {
+    color: #1e293b;
+    font-weight: 600;
+}
+
+.preview-separator {
+    color: #cbd5e1;
+    font-size: 10px;
+}
+
+.preview-amount,
+.preview-date,
+.preview-flight,
+.preview-dates,
+.preview-role,
+.preview-exp {
+    color: #475569;
+}
+
+.preview-status {
+    color: #10b981;
+    font-size: 18px;
+    flex-shrink: 0;
+    animation: statusPulse 0.5s ease;
+}
+
+@keyframes statusPulse {
+    from {
+        transform: scale(0);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Old full-size preview cards (deprecated) */
 .preview-card {
     background: white;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
     overflow: hidden;
 }
 
 .preview-header {
     background: linear-gradient(135deg, #2563eb, #1d4ed8);
     color: white;
-    padding: 12px 16px;
+    padding: 8px 12px;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     font-weight: 600;
+    font-size: 12px;
+}
+
+.preview-header .file-type-icon {
     font-size: 14px;
 }
 
 .preview-content {
-    padding: 16px;
+    padding: 10px 12px;
 }
 
-/* Receipt Mock */
+/* Receipt Mock - Reduced Size */
 .receipt-mock {
     font-family: 'Courier New', monospace;
     background: #fffef0;
-    padding: 20px;
+    padding: 10px 12px;
     border: 1px dashed #d4d4d4;
-    font-size: 12px;
+    font-size: 10px;
     color: #333;
 }
 
 .receipt-title {
     text-align: center;
     font-weight: bold;
-    font-size: 14px;
-    margin-bottom: 10px;
+    font-size: 11px;
+    margin-bottom: 6px;
 }
 
 .receipt-divider {
     text-align: center;
     color: #999;
-    margin: 10px 0;
-    font-size: 10px;
+    margin: 4px 0;
+    font-size: 8px;
+    line-height: 4px;
 }
 
 .receipt-item {
     display: flex;
     justify-content: space-between;
-    margin: 5px 0;
+    margin: 2px 0;
+    font-size: 9px;
 }
 
 .receipt-total {
     display: flex;
     justify-content: space-between;
     font-weight: bold;
-    font-size: 14px;
-    margin-top: 10px;
+    font-size: 11px;
+    margin-top: 4px;
 }
 
 .receipt-subtotal, .receipt-tax {
     display: flex;
     justify-content: space-between;
-    font-size: 12px;
-    margin: 5px 0;
+    font-size: 9px;
+    margin: 2px 0;
 }
 
 .receipt-date, .receipt-time, .receipt-payment {
     text-align: center;
     color: #666;
-    margin-top: 5px;
-    font-size: 11px;
+    margin-top: 3px;
+    font-size: 9px;
 }
 
-/* Ticket Mock */
+/* Ticket Mock - Reduced Size */
 .ticket-mock {
     background: linear-gradient(135deg, #3b82f6, #2563eb);
     color: white;
-    padding: 20px;
-    border-radius: 8px;
+    padding: 10px 12px;
+    border-radius: 6px;
 }
 
 .ticket-airline {
     text-align: center;
-    font-size: 16px;
+    font-size: 12px;
     font-weight: bold;
-    margin-bottom: 15px;
+    margin-bottom: 8px;
+}
+
+.ticket-airline i {
+    font-size: 10px;
 }
 
 .ticket-route {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 15px;
-    margin: 20px 0;
+    gap: 10px;
+    margin: 10px 0;
 }
 
 .ticket-route .airport {
-    font-size: 24px;
+    font-size: 16px;
     font-weight: bold;
+}
+
+.ticket-route i {
+    font-size: 10px;
 }
 
 .ticket-details {
     display: flex;
     justify-content: space-around;
-    margin: 15px 0;
+    margin: 8px 0;
 }
 
 .ticket-info {
@@ -1310,23 +1455,23 @@ body {
 
 .ticket-info .label,
 .ticket-date .label {
-    font-size: 10px;
+    font-size: 8px;
     opacity: 0.8;
     text-transform: uppercase;
 }
 
 .ticket-info .value,
 .ticket-date .value {
-    font-size: 14px;
+    font-size: 11px;
     font-weight: bold;
-    margin-top: 2px;
+    margin-top: 1px;
 }
 
 .ticket-dates {
     display: flex;
     justify-content: space-around;
-    margin-top: 15px;
-    padding-top: 15px;
+    margin-top: 8px;
+    padding-top: 8px;
     border-top: 1px solid rgba(255, 255, 255, 0.3);
 }
 
@@ -1334,57 +1479,57 @@ body {
     text-align: center;
 }
 
-/* Resume Mock */
+/* Resume Mock - Reduced Size */
 .resume-mock {
     background: #f8fafc;
-    padding: 20px;
-    border-left: 4px solid #2563eb;
+    padding: 10px 12px;
+    border-left: 3px solid #2563eb;
 }
 
 .resume-name {
-    font-size: 20px;
+    font-size: 14px;
     font-weight: bold;
     color: #1e293b;
-    margin-bottom: 5px;
+    margin-bottom: 3px;
 }
 
 .resume-title {
-    font-size: 14px;
+    font-size: 11px;
     color: #64748b;
-    margin-bottom: 15px;
+    margin-bottom: 8px;
 }
 
 .resume-section {
-    margin: 15px 0;
+    margin: 8px 0;
 }
 
 .resume-section strong {
     color: #2563eb;
-    font-size: 12px;
+    font-size: 9px;
     text-transform: uppercase;
     display: block;
-    margin-bottom: 8px;
+    margin-bottom: 4px;
 }
 
 .resume-section p {
-    margin: 4px 0;
-    font-size: 13px;
+    margin: 2px 0;
+    font-size: 10px;
     color: #475569;
 }
 
 .resume-skills {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
-    margin-top: 8px;
+    gap: 4px;
+    margin-top: 4px;
 }
 
 .resume-skills span {
     background: #eff6ff;
     color: #2563eb;
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-size: 12px;
+    padding: 2px 6px;
+    border-radius: 8px;
+    font-size: 9px;
     font-weight: 500;
     border: 1px solid #bfdbfe;
 }
@@ -1545,6 +1690,36 @@ body.fullscreen .container {
         50% {
             background: rgba(37, 99, 235, 0.1);
         }
+    }
+    
+    /* Compact previews on mobile */
+    .upload-preview.compact {
+        margin: 8px 0;
+    }
+    
+    .preview-card-compact {
+        padding: 10px;
+    }
+    
+    .preview-icon-section {
+        width: 32px;
+        height: 32px;
+    }
+    
+    .preview-icon-section .file-type-icon {
+        font-size: 16px;
+    }
+    
+    .preview-filename {
+        font-size: 11px;
+    }
+    
+    .preview-details {
+        font-size: 12px;
+    }
+    
+    .preview-status {
+        font-size: 16px;
     }
     
     /* Optimize mobile form layouts */

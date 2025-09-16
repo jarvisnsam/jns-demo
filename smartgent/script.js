@@ -294,12 +294,14 @@ function addMessage(type, message, options = {}) {
     
     // Show upload preview if specified
     if (options.showPreview) {
-        showUploadPreview(options.showPreview);
-        // Scroll to preview after it's shown, then back to chat after a delay
+        showUploadPreview(options.showPreview, true);
+        // Scroll to preview after it's shown (mobile only)
         setTimeout(() => {
             scrollToUploadPreview();
-            // Auto-scroll back to chat after showing preview for 3 seconds
-            setTimeout(() => scrollToChat(), 3000);
+            // Auto-scroll back to chat after showing preview
+            if (isMobile()) {
+                setTimeout(() => scrollToChat(), 2500);
+            }
         }, 300);
     }
 }
@@ -370,37 +372,51 @@ function getFileTypeIcon(filename) {
     }
 }
 
-// Show Upload Preview
-function showUploadPreview(type) {
+// Show Upload Preview with auto-minimize
+function showUploadPreview(type, autoMinimize = true) {
     // Hide all previews first
     document.getElementById('receiptPreview').style.display = 'none';
     document.getElementById('ticketPreview').style.display = 'none';
     document.getElementById('resumePreview').style.display = 'none';
     
+    let preview = null;
+    let filename = '';
+    
     // Show relevant preview with appropriate file icon
     if (type === 'receipt') {
-        const preview = document.getElementById('receiptPreview');
-        preview.style.display = 'block';
-        // Update file icon based on type
-        const fileIcon = preview.querySelector('.file-type-icon');
-        if (fileIcon) {
-            fileIcon.className = 'file-type-icon ' + getFileTypeIcon('receipt_blue_orchid.jpg');
-        }
+        preview = document.getElementById('receiptPreview');
+        filename = 'receipt_blue_orchid.jpg';
     } else if (type === 'ticket') {
-        const preview = document.getElementById('ticketPreview');
-        preview.style.display = 'block';
-        // Update file icon based on type
-        const fileIcon = preview.querySelector('.file-type-icon');
-        if (fileIcon) {
-            fileIcon.className = 'file-type-icon ' + getFileTypeIcon('flight_ticket_NYC.pdf');
-        }
+        preview = document.getElementById('ticketPreview');
+        filename = 'flight_ticket_NYC.pdf';
     } else if (type === 'resume') {
-        const preview = document.getElementById('resumePreview');
+        preview = document.getElementById('resumePreview');
+        filename = 'resume_john_doe.docx';
+    }
+    
+    if (preview) {
+        // Show preview with expand animation
         preview.style.display = 'block';
+        preview.classList.add('preview-expanded');
+        
         // Update file icon based on type
         const fileIcon = preview.querySelector('.file-type-icon');
         if (fileIcon) {
-            fileIcon.className = 'file-type-icon ' + getFileTypeIcon('resume_john_doe.docx');
+            fileIcon.className = 'file-type-icon ' + getFileTypeIcon(filename);
+        }
+        
+        // Auto-minimize after showing for a while (only in auto-play mode)
+        if (autoMinimize && isAutoPlay) {
+            setTimeout(() => {
+                // Add minimizing animation
+                preview.classList.add('preview-minimizing');
+                
+                // Hide after animation completes
+                setTimeout(() => {
+                    preview.style.display = 'none';
+                    preview.classList.remove('preview-expanded', 'preview-minimizing');
+                }, 500);
+            }, 3500); // Show for 3.5 seconds before minimizing
         }
     }
 }
