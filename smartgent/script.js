@@ -72,70 +72,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Control Panel Management
 function initializeControls() {
-    const manualBtn = document.getElementById('manualBtn');
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
     const playPauseBtn = document.getElementById('playPauseBtn');
     
-    manualBtn.addEventListener('click', () => setMode('manual'));
-    playPauseBtn.addEventListener('click', () => togglePlayPause());
-}
-
-// Mode Management
-function setMode(mode) {
-    const manualBtn = document.getElementById('manualBtn');
-    const playPauseBtn = document.getElementById('playPauseBtn');
-    
-    if (mode === 'manual') {
-        isAutoPlay = false;
-        isPaused = false;
-        manualBtn.classList.add('active');
-        playPauseBtn.classList.remove('active');
-        playPauseBtn.innerHTML = '<i class="fas fa-play"></i> Play';
-        stopAutoPlay();
-        updateChatInputPlaceholder();
+    if (fullscreenBtn) {
+        fullscreenBtn.addEventListener('click', () => toggleFullscreen());
+    }
+    if (playPauseBtn) {
+        playPauseBtn.addEventListener('click', () => togglePlayPause());
     }
 }
 
 // Play/Pause Toggle
 function togglePlayPause() {
-    const manualBtn = document.getElementById('manualBtn');
     const playPauseBtn = document.getElementById('playPauseBtn');
     
-    if (!isAutoPlay) {
-        // Switch to auto-play mode
-        isAutoPlay = true;
-        isPaused = false;
-        manualBtn.classList.remove('active');
-        playPauseBtn.classList.add('active');
-        document.getElementById('nextBtn').style.display = 'none';
-        updatePlayPauseButton();
-        
-        // Continue from current position
+    // Toggle pause/play
+    isPaused = !isPaused;
+    updatePlayPauseButton();
+    
+    if (!isPaused) {
+        // Resume
         processNextStep();
-    } else {
-        // Toggle pause/play
-        isPaused = !isPaused;
-        updatePlayPauseButton();
-        
-        if (!isPaused) {
-            // Resume
-            processNextStep();
-        }
     }
 }
 
 function updatePlayPauseButton() {
     const playPauseBtn = document.getElementById('playPauseBtn');
-    if (isAutoPlay) {
-        if (isPaused) {
-            playPauseBtn.innerHTML = '<i class="fas fa-play"></i> Play';
-            playPauseBtn.classList.remove('active');
-        } else {
-            playPauseBtn.innerHTML = '<i class="fas fa-pause"></i> Pause';
-            playPauseBtn.classList.add('active');
-        }
-    } else {
-        playPauseBtn.innerHTML = '<i class="fas fa-play"></i> Play';
+    if (isPaused) {
+        playPauseBtn.innerHTML = '<i class="fas fa-play"></i><span>Play</span>';
         playPauseBtn.classList.remove('active');
+    } else {
+        playPauseBtn.innerHTML = '<i class="fas fa-pause"></i><span>Pause</span>';
+        playPauseBtn.classList.add('active');
     }
 }
 
@@ -163,17 +132,24 @@ function switchTab(tabName) {
         clearTimeout(i);
     }
     
+    // Update tab buttons IMMEDIATELY
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+        btn.classList.remove('expense-active', 'leave-active', 'talent-active');
+    });
+    
+    const activeTab = document.querySelector(`.tab-btn[data-tab="${tabName}"]`);
+    if (activeTab) {
+        activeTab.classList.add('active');
+        activeTab.classList.add(`${tabName}-active`);
+    }
+    
     // Show intro overlay first
     showIntroSlide(tabName, () => {
         // Hide all upload previews
         document.getElementById('receiptPreview').style.display = 'none';
         document.getElementById('ticketPreview').style.display = 'none';
         document.getElementById('resumePreview').style.display = 'none';
-        
-        // Update tab buttons
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.tab === tabName);
-        });
         
         // Update system interfaces
         document.querySelectorAll('.system-interface').forEach(interface => {
@@ -1051,71 +1027,62 @@ function processNextStep() {
     }
 }
 
-// Show ROI Dashboard
+// Show Conclusion Overlay (Replaces ROI Dashboard)
 function showROIDashboard() {
-    // Pause to prevent conflicts during transition
-    isPaused = true;
-    
-    // Clear any existing timeouts to prevent conflicts
-    const highestTimeoutId = setTimeout(() => {}, 0);
-    for (let i = 0; i < highestTimeoutId; i++) {
-        clearTimeout(i);
-    }
-    
-    // Hide all tabs
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    
-    // Hide all systems
-    document.querySelectorAll('.system-interface').forEach(interface => {
-        interface.classList.remove('active');
-    });
-    
-    // Hide upload previews
-    document.getElementById('receiptPreview').style.display = 'none';
-    document.getElementById('ticketPreview').style.display = 'none';
-    document.getElementById('resumePreview').style.display = 'none';
-    
-    // Hide all success screens
-    document.querySelectorAll('.success-screen').forEach(screen => {
-        screen.classList.remove('show');
-    });
-    
-    // Show ROI dashboard
-    document.getElementById('roi-dashboard').classList.add('active');
-    
-    // Clear chat and add dashboard message
-    clearChat();
-    setTimeout(() => {
-        addMessage('bot', 'Here\'s the impact Smartgent can have on your enterprise operations!');
+    // Show conclusion overlay
+    const conclusionOverlay = document.getElementById('conclusionOverlay');
+    if (conclusionOverlay) {
+        // Hide all other interfaces first
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        
+        document.querySelectorAll('.system-interface').forEach(interface => {
+            interface.classList.remove('active');
+        });
+        
+        // Hide upload previews
+        const receiptPreview = document.getElementById('receiptPreview');
+        const ticketPreview = document.getElementById('ticketPreview');
+        const resumePreview = document.getElementById('resumePreview');
+        if (receiptPreview) receiptPreview.style.display = 'none';
+        if (ticketPreview) ticketPreview.style.display = 'none';
+        if (resumePreview) resumePreview.style.display = 'none';
+        
+        // Clear chat
+        clearChat();
+        
+        // Show conclusion overlay
+        conclusionOverlay.classList.add('show');
+        
+        // Update stage to conclusion
+        updateStageIndicator('conclusion');
         
         // Animate metrics after a short delay
         setTimeout(() => {
-            animateMetrics();
+            animateConclusionMetrics();
         }, 500);
         
-        // Resume auto-play and restart loop after showing ROI dashboard
+        // Resume loop after showing conclusion - LONGER DURATION
         if (isAutoPlay) {
-            isPaused = false;
-            updatePlayPauseButton();
-            
             setTimeout(() => {
                 if (isAutoPlay && !isPaused) {
+                    // Hide conclusion and restart
+                    conclusionOverlay.classList.remove('show');
                     // Smooth restart - go back to expense tab
                     switchTab('expense');
                 }
-            }, 7000);
+            }, 12000); // Increased from 8000 to 12000 (12 seconds)
         }
-    }, 200);
-    
-    // Update indicator
-    updateSceneIndicator();
+        
+        // Update indicator
+        updateSceneIndicator();
+    }
 }
 
-// Animate Metrics
-function animateMetrics() {
-    document.querySelectorAll('.metric-value').forEach(metric => {
+// Animate Conclusion Metrics
+function animateConclusionMetrics() {
+    document.querySelectorAll('.conclusion-metric-value').forEach(metric => {
         const target = parseFloat(metric.getAttribute('data-target'));
         const isPercentage = metric.textContent.includes('%');
         const isMultiplier = metric.textContent.includes('x');
@@ -1200,21 +1167,16 @@ function stopAutoPlay() {
     }
 }
 
-// Update Scene Indicator
+// Update Scene Indicator (simplified - no progress bar or stage labels)
 function updateSceneIndicator() {
-    const progressFill = document.getElementById('progressFill');
-    
-    const tabs = ['expense', 'leave', 'talent'];
-    const currentIndex = tabs.indexOf(currentTab);
-    const totalSteps = tabs.length + 1; // Including ROI dashboard
-    
-    if (document.getElementById('roi-dashboard').classList.contains('active')) {
-        progressFill.style.width = '100%';
-    } else if (currentIndex >= 0) {
-        progressFill.style.width = `${((currentIndex + 1) / totalSteps) * 100}%`;
-    } else {
-        progressFill.style.width = '0%';
-    }
+    // Function kept for compatibility but simplified
+    // No visual indicators to update
+}
+
+// Update stage indicator (simplified - no progress bar or stage labels)
+function updateStageIndicator(stage) {
+    // Function kept for compatibility but simplified
+    // No visual indicators to update
 }
 
 // Keyboard Controls
@@ -1243,12 +1205,18 @@ function handleKeyPress(e) {
 
 // Fullscreen functionality
 function toggleFullscreen() {
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    
     if (!document.fullscreenElement) {
+        // Enter fullscreen
         document.documentElement.requestFullscreen();
-        document.body.classList.add('fullscreen');
+        document.body.classList.add('presentation-mode');
+        fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i><span>Exit</span>';
     } else {
+        // Exit fullscreen
         document.exitFullscreen();
-        document.body.classList.remove('fullscreen');
+        document.body.classList.remove('presentation-mode');
+        fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i><span>Fullscreen</span>';
     }
 }
 
@@ -1256,8 +1224,19 @@ function exitFullscreen() {
     if (document.exitFullscreen) {
         document.exitFullscreen();
     }
-    document.body.classList.remove('fullscreen');
+    document.body.classList.remove('presentation-mode');
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    if (fullscreenBtn) {
+        fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i><span>Fullscreen</span>';
+    }
 }
+
+// Listen for fullscreen change events
+document.addEventListener('fullscreenchange', () => {
+    if (!document.fullscreenElement) {
+        exitFullscreen();
+    }
+});
 
 // Show Intro Slide
 function showIntroSlide(tabName, callback) {
@@ -1265,32 +1244,39 @@ function showIntroSlide(tabName, callback) {
     const introIcon = document.getElementById('introIcon');
     const introTitle = document.getElementById('introTitle');
     
-    // Set icon and title based on tab
+    // Set icon, title and department benefit based on tab
     let iconClass = '';
     let title = '';
     let overlayClass = '';
+    let departmentBenefit = '';
     
     switch(tabName) {
         case 'expense':
             iconClass = 'fas fa-receipt';
-            title = 'ExpenseClaim';
+            title = 'Expense Claim';
             overlayClass = 'expense';
+            departmentBenefit = 'Streamline Finance & Accounting Operations';
             break;
         case 'leave':
             iconClass = 'fas fa-plane-departure';
-            title = 'ApplyLeave';
+            title = 'Apply Leave';
             overlayClass = 'leave';
+            departmentBenefit = 'Automate HR & People Management';
             break;
         case 'talent':
             iconClass = 'fas fa-users';
-            title = 'TalentMatch';
+            title = 'Talent Match';
             overlayClass = 'talent';
+            departmentBenefit = 'Accelerate Talent Acquisition & Recruitment';
             break;
     }
     
-    // Update overlay content
+    // Update overlay content with department benefit description
     introIcon.className = `intro-icon ${iconClass}`;
-    introTitle.textContent = title;
+    introTitle.innerHTML = `
+        ${title}
+        <div class="intro-subtitle">${departmentBenefit}</div>
+    `;
     
     // Reset overlay classes and add the specific theme
     introOverlay.className = `intro-overlay ${overlayClass}`;
