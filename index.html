@@ -191,6 +191,18 @@
             margin: 0;
         }
         
+        .demo-logo {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 0 20px rgba(0, 191, 255, 0.3));
+            transition: transform 0.3s ease;
+        }
+        
+        .demo-button:hover .demo-logo {
+            transform: scale(1.15) rotate(5deg);
+        }
+        
         /* Floating Background Icons */
         .demo-bg-icons {
             position: absolute;
@@ -320,6 +332,11 @@
                 max-width: 350px;
             }
             
+            .demo-logo {
+                width: 60px;
+                height: 60px;
+            }
+            
             .demo-button i {
                 font-size: 3rem;
             }
@@ -389,12 +406,12 @@
             <div class="demo-container">
                 <div class="demo-buttons">
                     <a href="./smartgent/" class="demo-button">
-                        <i class='bx bx-bot'></i>
+                        <img src="img/Smartgent_logo_500x500.png" alt="Smartgent" class="demo-logo">
                         <h3>Smartgent</h3>
                     </a>
 
                     <a href="./voicebot/" class="demo-button">
-                        <i class='bx bx-microphone'></i>
+                        <img src="img/Voicebot_logo_500x500.png" alt="Voicebot" class="demo-logo">
                         <h3>Voicebot</h3>
                     </a>
                 </div>
