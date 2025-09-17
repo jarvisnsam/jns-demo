@@ -58,17 +58,76 @@ document.addEventListener('DOMContentLoaded', () => {
     // Keyboard shortcuts
     document.addEventListener('keydown', handleKeyPress);
     
-    // Start auto-play by default - automatically start with expense tab
+    // Start auto-play by default - show opening slide first
     if (isAutoPlay) {
         updatePlayPauseButton();
         
-        // Auto-start with intro slide first
-        setTimeout(() => {
-            // Start with intro slide for expense tab
-            switchTab('expense');
-        }, 500);
+        // Show opening slide first
+        showOpeningSlide(() => {
+            // After opening slide, start with expense tab
+            setTimeout(() => {
+                switchTab('expense');
+            }, 500);
+        });
     }
 });
+
+// Show Opening Slide
+function showOpeningSlide(callback) {
+    const openingOverlay = document.getElementById('openingOverlay');
+    
+    // Add click handlers to opening tabs
+    const expenseTab = openingOverlay.querySelector('.expense-tab');
+    const leaveTab = openingOverlay.querySelector('.leave-tab');
+    const talentTab = openingOverlay.querySelector('.talent-tab');
+    
+    if (expenseTab) {
+        expenseTab.onclick = () => {
+            openingOverlay.classList.remove('show');
+            setTimeout(() => {
+                switchTab('expense');
+            }, 300);
+        };
+    }
+    
+    if (leaveTab) {
+        leaveTab.onclick = () => {
+            openingOverlay.classList.remove('show');
+            setTimeout(() => {
+                switchTab('leave');
+            }, 300);
+        };
+    }
+    
+    if (talentTab) {
+        talentTab.onclick = () => {
+            openingOverlay.classList.remove('show');
+            setTimeout(() => {
+                switchTab('talent');
+            }, 300);
+        };
+    }
+    
+    // Show opening overlay with fade in
+    setTimeout(() => {
+        openingOverlay.classList.add('show');
+    }, 50);
+    
+    // Auto-hide after 4 seconds if not paused
+    const autoHideTimeout = setTimeout(() => {
+        if (!isPaused) {
+            openingOverlay.classList.remove('show');
+            
+            // Wait for fade out transition to complete before calling callback
+            setTimeout(() => {
+                if (callback) callback();
+            }, 500);
+        }
+    }, 4000); // Show opening slide for 4 seconds
+    
+    // Store timeout for cleanup
+    openingOverlay.autoHideTimeout = autoHideTimeout;
+}
 
 // Control Panel Management
 function initializeControls() {
@@ -86,14 +145,34 @@ function initializeControls() {
 // Play/Pause Toggle
 function togglePlayPause() {
     const playPauseBtn = document.getElementById('playPauseBtn');
+    const openingOverlay = document.getElementById('openingOverlay');
+    const conclusionOverlay = document.getElementById('conclusionOverlay');
     
     // Toggle pause/play
     isPaused = !isPaused;
     updatePlayPauseButton();
     
     if (!isPaused) {
-        // Resume
-        processNextStep();
+        // Resume from appropriate state
+        if (openingOverlay.classList.contains('show')) {
+            // If on opening slide, hide it and start
+            if (openingOverlay.autoHideTimeout) {
+                clearTimeout(openingOverlay.autoHideTimeout);
+            }
+            openingOverlay.classList.remove('show');
+            setTimeout(() => {
+                switchTab('expense');
+            }, 500);
+        } else if (conclusionOverlay.classList.contains('show')) {
+            // If on conclusion slide, hide it and restart
+            conclusionOverlay.classList.remove('show');
+            setTimeout(() => {
+                switchTab('expense');
+            }, 500);
+        } else {
+            // Normal resume
+            processNextStep();
+        }
     }
 }
 
@@ -271,14 +350,14 @@ function addMessage(type, message, options = {}) {
     // Show upload preview if specified
     if (options.showPreview) {
         showUploadPreview(options.showPreview, true);
-        // Scroll to preview after it's shown (mobile only)
+        // Scroll to preview after it's shown (mobile only) - increased delay
         setTimeout(() => {
             scrollToUploadPreview();
-            // Auto-scroll back to chat after showing preview
+            // Auto-scroll back to chat after showing preview - increased delay
             if (isMobile()) {
-                setTimeout(() => scrollToChat(), 2500);
+                setTimeout(() => scrollToChat(), 3000);
             }
-        }, 300);
+        }, 500);
     }
 }
 
@@ -588,8 +667,8 @@ function resetForms() {
 
 // Form Filling Animations
 function fillExpenseForm() {
-    // Scroll to system panel first
-    setTimeout(() => scrollToSystem(), 100);
+    // Scroll to system panel first - increased delay for mobile
+    setTimeout(() => scrollToSystem(), 300);
     
     const fields = [
         { id: 'expense-vendor', value: 'The Blue Orchid', delay: 200 },
@@ -638,14 +717,14 @@ function fillExpenseForm() {
             <i class="fas fa-check-circle"></i>
             <span>Form populated successfully! Ready to submit.</span>
         `;
-        // Scroll to submit button
-        setTimeout(() => scrollToSubmitButton(), 200);
+        // Scroll to submit button - increased delay for mobile
+        setTimeout(() => scrollToSubmitButton(), 400);
     }, 1200);
 }
 
 function fillLeaveForm() {
-    // Scroll to system panel first
-    setTimeout(() => scrollToSystem(), 100);
+    // Scroll to system panel first - increased delay for mobile
+    setTimeout(() => scrollToSystem(), 300);
     
     const fields = [
         { id: 'leave-from', value: 'February 20, 2025', delay: 200 },
@@ -692,8 +771,8 @@ function fillLeaveForm() {
 }
 
 function fillTalentDashboard() {
-    // Scroll to system panel first
-    setTimeout(() => scrollToSystem(), 100);
+    // Scroll to system panel first - increased delay for mobile
+    setTimeout(() => scrollToSystem(), 300);
     
     // Fill candidate info
     setTimeout(() => {
@@ -720,30 +799,32 @@ function fillTalentDashboard() {
         `;
     }, 500);
     
-    // Fill job matches
+    // Fill job matches with scrollable content wrapper
     setTimeout(() => {
         document.getElementById('job-matches').innerHTML = `
             <h3><i class="fas fa-briefcase"></i> Job Matches</h3>
-            <div class="job-match-card">
-                <div class="job-info">
-                    <h4>Senior Full Stack Developer</h4>
-                    <p>Engineering Team</p>
+            <div class="job-matches-content">
+                <div class="job-match-card">
+                    <div class="job-info">
+                        <h4>Senior Full Stack Developer</h4>
+                        <p>Engineering Team</p>
+                    </div>
+                    <div class="match-score high">95%</div>
                 </div>
-                <div class="match-score high">95%</div>
-            </div>
-            <div class="job-match-card">
-                <div class="job-info">
-                    <h4>Cloud Solutions Architect</h4>
-                    <p>Infrastructure Team</p>
+                <div class="job-match-card">
+                    <div class="job-info">
+                        <h4>Cloud Solutions Architect</h4>
+                        <p>Infrastructure Team</p>
+                    </div>
+                    <div class="match-score medium">82%</div>
                 </div>
-                <div class="match-score medium">82%</div>
-            </div>
-            <div class="job-match-card">
-                <div class="job-info">
-                    <h4>Engineering Manager</h4>
-                    <p>Product Team</p>
+                <div class="job-match-card">
+                    <div class="job-info">
+                        <h4>Engineering Manager</h4>
+                        <p>Product Team</p>
+                    </div>
+                    <div class="match-score medium">78%</div>
                 </div>
-                <div class="match-score medium">78%</div>
             </div>
         `;
     }, 1000);
@@ -1082,32 +1163,8 @@ function showROIDashboard() {
 
 // Animate Conclusion Metrics
 function animateConclusionMetrics() {
-    document.querySelectorAll('.conclusion-metric-value').forEach(metric => {
-        const target = parseFloat(metric.getAttribute('data-target'));
-        const isPercentage = metric.textContent.includes('%');
-        const isMultiplier = metric.textContent.includes('x');
-        const isMoney = metric.textContent.includes('$');
-        
-        let current = 0;
-        const increment = target / 50;
-        const timer = setInterval(() => {
-            current += increment;
-            if (current >= target) {
-                current = target;
-                clearInterval(timer);
-            }
-            
-            if (isPercentage) {
-                metric.textContent = `${current.toFixed(1)}%`;
-            } else if (isMultiplier) {
-                metric.textContent = `${current.toFixed(0)}x`;
-            } else if (isMoney) {
-                metric.textContent = `$${current.toFixed(1)}M`;
-            } else {
-                metric.textContent = current.toFixed(0);
-            }
-        }, 30);
-    });
+    // No animation needed for text-based metrics
+    // They are already displayed in the HTML
 }
 
 // Upload Zone
