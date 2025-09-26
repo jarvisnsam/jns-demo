@@ -130,7 +130,7 @@
             background: linear-gradient(135deg, rgba(0, 0, 0, 0.6), rgba(0, 191, 255, 0.15));
             border: 2px solid rgba(0, 191, 255, 0.4);
             border-radius: 25px;
-            padding: 60px 80px;
+            padding: 60px 40px;
             text-decoration: none;
             color: white;
             box-shadow: 0 20px 60px rgba(0, 191, 255, 0.3);
@@ -142,6 +142,7 @@
             position: relative;
             overflow: hidden;
             backdrop-filter: blur(10px);
+            width: 320px;  /* Fixed width for all buttons */
         }
         
         .demo-button::before {
@@ -183,12 +184,13 @@
         }
         
         .demo-button h3 {
-            font-size: 2.2rem;
+            font-size: 1.3rem;
             font-weight: 600;
             color: #ffffff;
             text-transform: uppercase;
-            letter-spacing: 2px;
+            letter-spacing: 1px;
             margin: 0;
+            line-height: 1.2;
         }
         
         .demo-logo {
@@ -201,6 +203,25 @@
         
         .demo-button:hover .demo-logo {
             transform: scale(1.15) rotate(5deg);
+        }
+        
+        /* OAuth MCP Logo Icon */
+        .oauth-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, rgba(0, 191, 255, 0.2), rgba(255, 51, 51, 0.2));
+            border: 2px solid rgba(0, 191, 255, 0.4);
+            border-radius: 50%;
+        }
+        
+        .oauth-logo i {
+            font-size: 40px;
+            background: linear-gradient(90deg, #00BFFF, #FF3333);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0;
         }
         
         /* Floating Background Icons */
@@ -342,7 +363,7 @@
             }
             
             .demo-button h3 {
-                font-size: 1.5rem;
+                font-size: 1.2rem;
             }
             
             .demo-bg-icon {
@@ -408,6 +429,11 @@
                     <a href="./smartgent/" class="demo-button">
                         <img src="img/Smartgent_logo_500x500.png" alt="Smartgent" class="demo-logo">
                         <h3>Smartgent</h3>
+                    </a>
+
+                    <a href="./etpmcp/" class="demo-button">
+                        <img src="img/EntMCP_logo_500x500.png" alt="Enterprise MCP Connector" class="demo-logo">
+                        <h3>Enterprise MCP<br>Connector</h3>
                     </a>
 
                     <a href="./voicebot/" class="demo-button">
