@@ -1291,7 +1291,7 @@ body {
         right: 20px;
         top: auto;
         transform: none;
-        z-index: 1000;
+        z-index: 2000; /* Higher than overlays */
         display: flex;
         flex-direction: column;
         gap: 10px;
@@ -1350,18 +1350,22 @@ body {
     }
     
     .opening-title {
-        font-size: 1.8rem;
+        font-size: 1.5rem;
         margin-bottom: 10px;
+        letter-spacing: 0;
+        padding: 0 10px;
     }
     
     .opening-subtitle {
-        font-size: 1rem;
+        font-size: 0.9rem;
         margin-bottom: 8px;
+        padding: 0 10px;
     }
     
     .opening-tagline {
-        font-size: 0.85rem;
-        letter-spacing: 2px;
+        font-size: 0.7rem;
+        letter-spacing: 1px;
+        padding: 0 10px;
     }
     
     .opening-features {
@@ -1620,16 +1624,19 @@ body {
     }
     
     .conclusion-title {
-        font-size: 1.8rem;
-        gap: 10px;
+        font-size: 1.3rem;
+        gap: 8px;
+        flex-direction: column;
     }
     
-    .conclusion-title i {
-        font-size: 1.8rem;
+    .conclusion-logo {
+        width: 50px;
+        height: 50px;
     }
     
     .conclusion-subtitle {
-        font-size: 0.9rem;
+        font-size: 0.85rem;
+        padding: 0 20px;
     }
     
     .conclusion-metrics {
@@ -1679,8 +1686,9 @@ body {
     
     /* Intro overlay mobile - positioned below header */
     .intro-overlay {
-        top: 50px; /* Below mobile header */
+        top: 48px; /* Slightly overlap mobile header to prevent gap */
         bottom: 0; /* Ensure full height */
+        padding-top: 2px; /* Small padding for coverage */
     }
     
     .intro-content {
@@ -1688,18 +1696,24 @@ body {
     }
     
     .intro-icon {
-        font-size: 48px;
-        margin-bottom: 15px;
+        font-size: 40px;
+        margin-bottom: 12px;
     }
     
     .intro-title {
-        font-size: 22px;
-        letter-spacing: 0.5px;
+        font-size: 11px;
+        letter-spacing: 0;
+        padding: 0 35px;
+        word-wrap: break-word;
+        word-break: break-word;
+        line-height: 1.2;
+        text-transform: none; /* Remove uppercase for better fit */
     }
     
     .intro-subtitle {
-        font-size: 12px;
+        font-size: 11px;
         margin-top: 8px;
+        padding: 0 15px;
     }
     
     /* Progress bar mobile */
@@ -1728,16 +1742,18 @@ body {
     }
     
     .intro-icon {
-        font-size: 40px;
-        margin-bottom: 12px;
+        font-size: 35px;
+        margin-bottom: 10px;
     }
     
     .intro-title {
-        font-size: 18px;
+        font-size: 10px;
+        line-height: 1.1;
+        text-transform: none;
     }
     
     .intro-subtitle {
-        font-size: 11px;
+        font-size: 10px;
         margin-top: 6px;
     }
     
@@ -1816,32 +1832,12 @@ body {
     }
 }
 
-@media (max-width: 480px) {
-    .opening-title {
-        font-size: 2rem;
-    }
-    
-    .opening-subtitle {
-        font-size: 1rem;
-    }
-    
-    .feature-card {
-        padding: 20px;
-    }
-    
-    .scene-header h2 {
-        font-size: 1.5rem;
-    }
-    
-    .message-content {
-        max-width: 85%;
-    }
-}
+/* Removed duplicate media query that was overriding mobile styles */
 
 /* Intro Overlay (like Smartgent) - positioned below header */
 .intro-overlay {
     position: absolute;
-    top: 75px; /* Start below header */
+    top: 73px; /* Slightly overlap to prevent gap */
     left: 0;
     right: 0;
     bottom: 0; /* Ensure it goes all the way to bottom */
@@ -1888,6 +1884,44 @@ body {
     margin-top: 20px;
     text-transform: none;
     opacity: 0.95;
+}
+
+/* Mobile overrides for intro */
+@media (max-width: 768px) {
+    .intro-overlay {
+        top: 48px; /* Below mobile header */
+    }
+    
+    .intro-icon {
+        font-size: 90px !important;
+    }
+    
+    .intro-title {
+        font-size: 34px !important;
+        letter-spacing: 0 !important;
+        padding: 0 20px !important;
+        text-transform: none !important;
+        line-height: 1.2 !important;
+    }
+    
+    .intro-subtitle {
+        font-size: 20px !important;
+        padding: 0 15px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .intro-icon {
+        font-size: 72px !important;
+    }
+    
+    .intro-title {
+        font-size: 30px !important;
+    }
+    
+    .intro-subtitle {
+        font-size: 18px !important;
+    }
 }
 
 @keyframes slideInUp {
